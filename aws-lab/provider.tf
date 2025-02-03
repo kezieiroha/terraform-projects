@@ -1,9 +1,10 @@
 # ------------------------------------------------------------------------------
 # File: provider.tf
 # Author: Kezie Iroha
-# Description: Providers for project
+# Description: Providers for multi-region deployment
 # ------------------------------------------------------------------------------
 
+# Multi-region AWS provider configurations
 terraform {
   required_providers {
     aws = {
@@ -14,6 +15,11 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  alias  = "us_east_1"
+  region = "us-east-1"
 }
 
+provider "aws" {
+  alias  = "eu_west_1"
+  region = "eu-west-1"
+}

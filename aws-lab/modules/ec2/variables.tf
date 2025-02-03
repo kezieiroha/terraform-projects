@@ -31,3 +31,8 @@ variable "vpc_details" {
     })
   })
 }
+
+variable "region" {
+  description = "AWS region for EC2 deployment"
+  type        = string
+}

@@ -5,29 +5,39 @@
 # Description: main for vpc module
 # ------------------------------------------------------------------------------
 
+variable "deployment_region" {
+  description = "The region for deployment"
+  type        = string
+}
+
+variable "region_config" {
+  description = "Configuration for the region"
+  type = object({
+    vpc_cidr_block     = string
+    az_count           = optional(number)
+    availability_zones = optional(list(string))
+    private_subnets    = list(string)
+    public_subnets     = list(string)
+  })
+}
+
 # VPC Creation
 resource "aws_vpc" "main" {
-  for_each             = var.deployment_regions
-  cidr_block           = each.value.vpc_cidr_block
+  cidr_block           = var.region_config.vpc_cidr_block
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${each.key}-vpc"
+    Name = "${var.deployment_region}-vpc"
   }
 }
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  for_each = merge([
-    for region, config in var.deployment_regions : {
-      for index, subnet in config.public_subnets :
-      "${region}-public-${index}" => {
-        vpc_id     = aws_vpc.main[region].id
-        cidr_block = subnet
-        az         = config.availability_zones != null ? config.availability_zones[index] : null
-      }
-    }
-  ]...)
+  for_each = { for index, subnet in var.region_config.public_subnets : "${var.deployment_region}-public-${index}" => {
+    vpc_id     = aws_vpc.main.id
+    cidr_block = subnet
+    az         = var.region_config.availability_zones != null ? var.region_config.availability_zones[index] : null
+  } }
   vpc_id                  = each.value.vpc_id
   cidr_block              = each.value.cidr_block
   availability_zone       = each.value.az
@@ -39,16 +49,11 @@ resource "aws_subnet" "public" {
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  for_each = merge([
-    for region, config in var.deployment_regions : {
-      for index, subnet in config.private_subnets :
-      "${region}-private-${index}" => {
-        vpc_id     = aws_vpc.main[region].id
-        cidr_block = subnet
-        az         = config.availability_zones != null ? config.availability_zones[index] : null
-      }
-    }
-  ]...)
+  for_each = { for index, subnet in var.region_config.private_subnets : "${var.deployment_region}-private-${index}" => {
+    vpc_id     = aws_vpc.main.id
+    cidr_block = subnet
+    az         = var.region_config.availability_zones != null ? var.region_config.availability_zones[index] : null
+  } }
   vpc_id            = each.value.vpc_id
   cidr_block        = each.value.cidr_block
   availability_zone = each.value.az
@@ -59,64 +64,58 @@ resource "aws_subnet" "private" {
 
 # Internet Gateway
 resource "aws_internet_gateway" "igw" {
-  for_each = var.deployment_regions
-  vpc_id   = aws_vpc.main[each.key].id
+  vpc_id = aws_vpc.main.id
   tags = {
-    Name = "${each.key}-igw"
+    Name = "${var.deployment_region}-igw"
   }
 }
 
 # Public Route Table
 resource "aws_route_table" "public" {
-  for_each = var.deployment_regions
-  vpc_id   = aws_vpc.main[each.key].id
+  vpc_id = aws_vpc.main.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw[each.key].id
+    gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "${each.key}-public-route"
+    Name = "${var.deployment_region}-public-route"
   }
 }
 
 # NAT Gateway (Optional)
 resource "aws_eip" "nat" {
-  for_each = var.deployment_regions
-  domain   = "vpc"
+  domain = "vpc"
   tags = {
-    Name = "${each.key}-nat-eip"
+    Name = "${var.deployment_region}-nat-eip"
   }
 }
 
 resource "aws_nat_gateway" "nat" {
-  for_each      = var.deployment_regions
-  allocation_id = aws_eip.nat[each.key].id
-  subnet_id     = aws_subnet.public["${each.key}-public-0"].id
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public["${var.deployment_region}-public-0"].id
   depends_on    = [aws_internet_gateway.igw]
   tags = {
-    Name = "${each.key}-nat-gw"
+    Name = "${var.deployment_region}-nat-gw"
   }
 }
 
 # Private Route Table
 resource "aws_route_table" "private" {
-  for_each = var.deployment_regions
-  vpc_id   = aws_vpc.main[each.key].id
+  vpc_id = aws_vpc.main.id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat[each.key].id
+    nat_gateway_id = aws_nat_gateway.nat.id
   }
   tags = {
-    Name = "${each.key}-private-route"
+    Name = "${var.deployment_region}-private-route"
   }
 }
 
 # Security Groups (Dynamic Naming)
 resource "aws_security_group" "web" {
-  for_each    = var.deployment_regions
-  name        = "${each.key}-web-sg"
+  name        = "${var.deployment_region}-web-sg"
   description = "Allow HTTP and HTTPS traffic"
-  vpc_id      = aws_vpc.main[each.key].id
+  vpc_id      = aws_vpc.main.id
   ingress {
     from_port   = 80
     to_port     = 80
@@ -136,20 +135,19 @@ resource "aws_security_group" "web" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "${each.key}-web-sg"
+    Name = "${var.deployment_region}-web-sg"
   }
 }
 
 resource "aws_security_group" "app" {
-  for_each    = var.deployment_regions
-  name        = "${each.key}-app-sg"
+  name        = "${var.deployment_region}-app-sg"
   description = "Allow traffic from web servers"
-  vpc_id      = aws_vpc.main[each.key].id
+  vpc_id      = aws_vpc.main.id
   ingress {
     from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
-    security_groups = [aws_security_group.web[each.key].id]
+    security_groups = [aws_security_group.web.id]
   }
   egress {
     from_port   = 0
@@ -158,20 +156,19 @@ resource "aws_security_group" "app" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "${each.key}-app-sg"
+    Name = "${var.deployment_region}-app-sg"
   }
 }
 
 resource "aws_security_group" "database" {
-  for_each    = var.deployment_regions
-  name        = "${each.key}-database-sg"
+  name        = "${var.deployment_region}-database-sg"
   description = "Allow MySQL access from app servers"
-  vpc_id      = aws_vpc.main[each.key].id
+  vpc_id      = aws_vpc.main.id
   ingress {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [aws_security_group.app[each.key].id]
+    security_groups = [aws_security_group.app.id]
   }
   egress {
     from_port   = 0
@@ -180,15 +177,14 @@ resource "aws_security_group" "database" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "${each.key}-database-sg"
+    Name = "${var.deployment_region}-database-sg"
   }
 }
 
 resource "aws_security_group" "bastion" {
-  for_each    = var.deployment_regions
-  name        = "${each.key}-bastion-sg"
+  name        = "${var.deployment_region}-bastion-sg"
   description = "Allow SSH access"
-  vpc_id      = aws_vpc.main[each.key].id
+  vpc_id      = aws_vpc.main.id
   ingress {
     from_port   = 22
     to_port     = 22
@@ -202,6 +198,6 @@ resource "aws_security_group" "bastion" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "${each.key}-bastion-sg"
+    Name = "${var.deployment_region}-bastion-sg"
   }
 }
