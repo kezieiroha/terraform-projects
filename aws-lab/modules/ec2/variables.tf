@@ -5,47 +5,23 @@
 # Description: variables for ec2 module
 # ------------------------------------------------------------------------------
 
+# SSH Key Pair
 variable "key_name" {
   description = "The name of the SSH key pair"
   type        = string
   default     = ""
 }
-
-/* 
-variable "key_name" {
-  description = "The name of the SSH key pair"
-  type        = string
-  default     = ""
-  validation {
-    condition     = var.key_name != ""
-    error_message = "The key_name variable must be provided."
-  }
-}
-*/
 
 variable "vpc_details" {
   description = "Details of the VPC"
   type = object({
     vpc_id   = string
     vpc_cidr = string
-    vpc_igw  = string
+    igw_id   = string
+    nat_id   = string
     subnets = object({
-      public_bastion = object({
-        id         = string
-        cidr_block = string
-      })
-      public_web = object({
-        id         = string
-        cidr_block = string
-      })
-      private_app = object({
-        id         = string
-        cidr_block = string
-      })
-      private_db = object({
-        id         = string
-        cidr_block = string
-      })
+      public  = list(string)
+      private = list(string)
     })
     security_groups = object({
       web      = string

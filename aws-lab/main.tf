@@ -6,7 +6,6 @@
 
 module "vpc" {
   source = "./modules/vpc"
-
   deployment_regions = {
     "us-east-1" = {
       vpc_cidr_block  = "10.0.0.0/16"
@@ -19,7 +18,6 @@ module "vpc" {
 
 module "ec2" {
   source      = "./modules/ec2"
-  vpc_details = module.vpc.vpc_details
+  key_name    = var.key_name
+  vpc_details = module.vpc.vpc_details[var.aws_region]
 }
-
-
