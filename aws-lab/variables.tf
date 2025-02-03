@@ -14,15 +14,22 @@ variable "aws_region" {
   type        = string
 }
 
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  type        = string
-}
-
 variable "key_name" {
   description = "The name of the SSH key pair to be used for EC2 instances"
   type        = string
   default     = ""
 }
+
+variable "deployment_regions" {
+  description = "Map of regions with VPC, AZ, and subnet configurations"
+  type = map(object({
+    vpc_cidr_block     = string
+    az_count           = optional(number)
+    availability_zones = optional(list(string))
+    private_subnets    = list(string)
+    public_subnets     = list(string)
+  }))
+}
+
 
 
