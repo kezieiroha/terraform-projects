@@ -42,3 +42,9 @@ variable "ec2_az_overrides" {
   })
   default = {}
 }
+
+variable "deploy_alternate_az_set" {
+  description = "Deploy an identical set of EC2 instances in an alternate AZ"
+  type        = bool
+  default     = false
+}

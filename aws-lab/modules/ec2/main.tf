@@ -23,11 +23,11 @@ data "aws_ami" "amazon_linux" {
 }
 
 # Helper to determine AZ
-locals {
-  web_az     = coalesce(var.ec2_az_overrides.web, var.vpc_details.availability_zones[0])
-  db_az      = coalesce(var.ec2_az_overrides.db, var.vpc_details.availability_zones[0])
-  bastion_az = coalesce(var.ec2_az_overrides.bastion, var.vpc_details.availability_zones[0])
-}
+#locals {
+#  web_az     = coalesce(var.ec2_az_overrides.web, var.vpc_details.availability_zones[0])
+#  db_az      = coalesce(var.ec2_az_overrides.db, var.vpc_details.availability_zones[0])
+#  bastion_az = coalesce(var.ec2_az_overrides.bastion, var.vpc_details.availability_zones[0])
+#}
 
 # Function to get the correct subnet based on AZ
 locals {
@@ -36,12 +36,29 @@ locals {
   bastion_subnet = element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.bastion_az], 0)
 }
 
-# EC2 Instance Resources
+# Determine the default and alternate AZs
+locals {
+  az_list      = var.vpc_details.availability_zones
+  primary_az   = local.az_list[0]
+  alternate_az = local.az_list[1]
+
+  # Apply override if provided, otherwise use defaults
+  web_az     = coalesce(var.ec2_az_overrides.web, local.primary_az)
+  db_az      = coalesce(var.ec2_az_overrides.db, local.primary_az)
+  bastion_az = coalesce(var.ec2_az_overrides.bastion, local.primary_az)
+
+  # For duplicate set
+  duplicate_web_az     = local.web_az == local.primary_az ? local.alternate_az : local.primary_az
+  duplicate_db_az      = local.db_az == local.primary_az ? local.alternate_az : local.primary_az
+  duplicate_bastion_az = local.bastion_az == local.primary_az ? local.alternate_az : local.primary_az
+}
+
+# Primary EC2 Instances
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
-  subnet_id              = local.web_subnet
   availability_zone      = local.web_az
+  subnet_id              = element(var.vpc_details.subnets.public, 0)
   vpc_security_group_ids = [var.vpc_details.security_groups.web]
   tags = {
     Name = "EC2 Web"
@@ -51,8 +68,8 @@ resource "aws_instance" "web" {
 resource "aws_instance" "db" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
-  subnet_id              = local.db_subnet
   availability_zone      = local.db_az
+  subnet_id              = element(var.vpc_details.subnets.private, 0)
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
   tags = {
     Name = "EC2 DB"
@@ -62,10 +79,47 @@ resource "aws_instance" "db" {
 resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
-  subnet_id              = local.bastion_subnet
   availability_zone      = local.bastion_az
+  subnet_id              = element(var.vpc_details.subnets.public, 0)
   vpc_security_group_ids = [var.vpc_details.security_groups.bastion]
   tags = {
     Name = "EC2 Public Bastion"
+  }
+}
+
+# Duplicate EC2 Instances (Conditional Deployment)
+resource "aws_instance" "web_duplicate" {
+  count                  = var.deploy_alternate_az_set ? 1 : 0
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t2.micro"
+  availability_zone      = local.duplicate_web_az
+  subnet_id              = element(var.vpc_details.subnets.public, 1)
+  vpc_security_group_ids = [var.vpc_details.security_groups.web]
+  tags = {
+    Name = "EC2 Web - Duplicate"
+  }
+}
+
+resource "aws_instance" "db_duplicate" {
+  count                  = var.deploy_alternate_az_set ? 1 : 0
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t2.micro"
+  availability_zone      = local.duplicate_db_az
+  subnet_id              = element(var.vpc_details.subnets.private, 1)
+  vpc_security_group_ids = [var.vpc_details.security_groups.database]
+  tags = {
+    Name = "EC2 DB - Duplicate"
+  }
+}
+
+resource "aws_instance" "bastion_duplicate" {
+  count                  = var.deploy_alternate_az_set ? 1 : 0
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t2.micro"
+  availability_zone      = local.duplicate_bastion_az
+  subnet_id              = element(var.vpc_details.subnets.public, 1)
+  vpc_security_group_ids = [var.vpc_details.security_groups.bastion]
+  tags = {
+    Name = "EC2 Public Bastion - Duplicate"
   }
 }
