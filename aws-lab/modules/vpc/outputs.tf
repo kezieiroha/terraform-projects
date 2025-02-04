@@ -6,26 +6,23 @@
 # ------------------------------------------------------------------------------
 
 output "vpc_details" {
-  description = "Details of the created VPCs, including subnets, security groups, and gateways"
+  description = "Details of the created VPC, including subnets, security groups, and gateways"
   value = {
-    for region, config in var.deployment_regions :
-    region => {
-      vpc_id   = aws_vpc.main[region].id
-      vpc_cidr = aws_vpc.main[region].cidr_block
-      igw_id   = aws_internet_gateway.igw[region].id
-      nat_id   = aws_nat_gateway.nat[region].id
+    vpc_id   = aws_vpc.main.id
+    vpc_cidr = aws_vpc.main.cidr_block
+    igw_id   = aws_internet_gateway.igw.id
+    nat_id   = aws_nat_gateway.nat.id
 
-      subnets = {
-        public  = [for key, s in aws_subnet.public : s.id if startswith(key, "${region}-public")]
-        private = [for key, s in aws_subnet.private : s.id if startswith(key, "${region}-private")]
-      }
+    subnets = {
+      public  = [for s in aws_subnet.public : s.id]
+      private = [for s in aws_subnet.private : s.id]
+    }
 
-      security_groups = {
-        web      = aws_security_group.web[region].id
-        app      = aws_security_group.app[region].id
-        database = aws_security_group.database[region].id
-        bastion  = aws_security_group.bastion[region].id
-      }
+    security_groups = {
+      web      = aws_security_group.web.id
+      app      = aws_security_group.app.id
+      database = aws_security_group.database.id
+      bastion  = aws_security_group.bastion.id
     }
   }
 }

@@ -24,7 +24,6 @@ data "aws_ami" "amazon_linux" {
 
 # Web EC2 Instance
 resource "aws_instance" "web" {
-  provider               = aws
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   subnet_id              = var.vpc_details.subnets.public[0] # Assuming the first public subnet
@@ -37,7 +36,6 @@ resource "aws_instance" "web" {
 
 # Database EC2 Instance
 resource "aws_instance" "db" {
-  provider               = aws
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   subnet_id              = var.vpc_details.subnets.private[0] # Assuming the first private subnet
@@ -50,7 +48,6 @@ resource "aws_instance" "db" {
 
 # Bastion Host EC2 Instance
 resource "aws_instance" "bastion" {
-  provider               = aws
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   subnet_id              = var.vpc_details.subnets.public[0] # Assuming the first public subnet
