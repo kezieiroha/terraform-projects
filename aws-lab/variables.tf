@@ -45,3 +45,19 @@ variable "public_subnets" {
   description = "List of public subnet CIDR blocks"
   type        = list(string)
 }
+
+variable "ec2_az_overrides" {
+  description = "Optional AZ override for each EC2 instance (web, db, bastion)"
+  type = object({
+    web     = optional(string)
+    db      = optional(string)
+    bastion = optional(string)
+  })
+  default = {}
+}
+
+variable "deploy_alternate_az_set" {
+  description = "Flag to deploy an identical EC2 set in the alternate AZ"
+  type        = bool
+  default     = false
+}

@@ -14,6 +14,7 @@ module "vpc" {
 }
 
 module "ec2" {
-  source      = "./modules/ec2"
-  vpc_details = module.vpc.vpc_details
+  source           = "./modules/ec2"
+  vpc_details      = module.vpc.vpc_details
+  ec2_az_overrides = var.ec2_az_overrides
 }

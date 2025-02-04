@@ -22,37 +22,49 @@ data "aws_ami" "amazon_linux" {
   owners = ["amazon"]
 }
 
-# Web EC2 Instance
+# Helper to determine AZ
+locals {
+  web_az     = coalesce(var.ec2_az_overrides.web, var.vpc_details.availability_zones[0])
+  db_az      = coalesce(var.ec2_az_overrides.db, var.vpc_details.availability_zones[0])
+  bastion_az = coalesce(var.ec2_az_overrides.bastion, var.vpc_details.availability_zones[0])
+}
+
+# Function to get the correct subnet based on AZ
+locals {
+  web_subnet     = element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.web_az], 0)
+  db_subnet      = element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.private[i] if az == local.db_az], 0)
+  bastion_subnet = element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.bastion_az], 0)
+}
+
+# EC2 Instance Resources
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
-  subnet_id              = var.vpc_details.subnets.public[0] # Assuming the first public subnet
+  subnet_id              = local.web_subnet
+  availability_zone      = local.web_az
   vpc_security_group_ids = [var.vpc_details.security_groups.web]
-  key_name               = var.key_name
   tags = {
     Name = "EC2 Web"
   }
 }
 
-# Database EC2 Instance
 resource "aws_instance" "db" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
-  subnet_id              = var.vpc_details.subnets.private[0] # Assuming the first private subnet
+  subnet_id              = local.db_subnet
+  availability_zone      = local.db_az
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
-  key_name               = var.key_name
   tags = {
     Name = "EC2 DB"
   }
 }
 
-# Bastion Host EC2 Instance
 resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
-  subnet_id              = var.vpc_details.subnets.public[0] # Assuming the first public subnet
+  subnet_id              = local.bastion_subnet
+  availability_zone      = local.bastion_az
   vpc_security_group_ids = [var.vpc_details.security_groups.bastion]
-  key_name               = var.key_name
   tags = {
     Name = "EC2 Public Bastion"
   }

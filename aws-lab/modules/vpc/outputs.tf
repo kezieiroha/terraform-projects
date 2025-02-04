@@ -8,10 +8,11 @@
 output "vpc_details" {
   description = "Details of the created VPC, including subnets, security groups, and gateways"
   value = {
-    vpc_id   = aws_vpc.main.id
-    vpc_cidr = aws_vpc.main.cidr_block
-    igw_id   = aws_internet_gateway.igw.id
-    nat_id   = aws_nat_gateway.nat.id
+    vpc_id             = aws_vpc.main.id
+    vpc_cidr           = aws_vpc.main.cidr_block
+    igw_id             = aws_internet_gateway.igw.id
+    nat_id             = aws_nat_gateway.nat.id
+    availability_zones = var.availability_zones
 
     subnets = {
       public  = [for s in aws_subnet.public : s.id]
