@@ -41,6 +41,15 @@ variable "ec2_az_overrides" {
     bastion = optional(string)
   })
   default = {}
+
+  # Validation: Ensure AZ overrides are within allowed AZs
+  validation {
+    condition = alltrue([
+      for az in [var.ec2_az_overrides.web, var.ec2_az_overrides.db, var.ec2_az_overrides.bastion] :
+      az == null || contains(var.vpc_details.availability_zones, az)
+    ])
+    error_message = "Invalid AZ override detected. All AZs in ec2_az_overrides must be within the specified availability_zones."
+  }
 }
 
 variable "deploy_alternate_az_set" {
