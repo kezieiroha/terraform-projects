@@ -45,3 +45,9 @@ variable "public_subnets" {
   description = "List of public subnet CIDR blocks"
   type        = list(string)
 }
+
+variable "ec2_az_override" {
+  description = "Optional AZ override for EC2 instances"
+  type        = map(string)
+  default     = {}
+}

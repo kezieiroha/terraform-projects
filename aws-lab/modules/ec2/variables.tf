@@ -31,3 +31,9 @@ variable "vpc_details" {
     })
   })
 }
+
+variable "ec2_az_override" {
+  description = "Optional AZ override for EC2 instances"
+  type        = map(string)
+  default     = {}
+}
