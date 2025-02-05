@@ -68,19 +68,6 @@ resource "aws_instance" "web" {
   }
 }
 
-/*
-resource "aws_instance" "db" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = "t2.micro"
-  availability_zone      = local.db_az
-  subnet_id              = element(var.vpc_details.subnets.private, 0)
-  vpc_security_group_ids = [var.vpc_details.security_groups.database]
-  tags = {
-    Name = "EC2 DB"
-  }
-}
-*/
-
 resource "aws_instance" "db" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
@@ -89,19 +76,6 @@ resource "aws_instance" "db" {
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
   tags                   = { Name = "EC2 DB" }
 }
-
-/*
-resource "aws_instance" "bastion" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = "t2.micro"
-  availability_zone      = local.bastion_az
-  subnet_id              = element(var.vpc_details.subnets.public, 0)
-  vpc_security_group_ids = [var.vpc_details.security_groups.bastion]
-  tags = {
-    Name = "EC2 Public Bastion"
-  }
-}
-*/
 
 resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.amazon_linux.id
