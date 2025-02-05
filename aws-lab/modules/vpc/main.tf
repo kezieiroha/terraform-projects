@@ -6,10 +6,29 @@
 # ------------------------------------------------------------------------------
 
 # VPC Creation
+locals {
+  # Find any duplicates between public and private subnets
+  duplicate_cidrs = distinct([
+    for cidr in var.private_subnets : cidr
+    if contains(var.public_subnets, cidr)
+  ])
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_support   = true
   enable_dns_hostnames = true
+
+  lifecycle {
+    precondition {
+      condition = length(local.duplicate_cidrs) == 0
+      error_message = format(
+        "Duplicate CIDR blocks found between public and private subnets: %s",
+        join(", ", local.duplicate_cidrs)
+      )
+    }
+  }
+
   tags = {
     Name = var.vpc_name
   }
