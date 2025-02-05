@@ -39,18 +39,6 @@ locals {
   duplicate_bastion_az = local.bastion_az == local.primary_az ? local.alternate_az : local.primary_az
 }
 
-# Check for duplicate CIDR blocks across private and public subnets
-locals {
-  duplicate_cidrs = length([
-    for cidr in var.vpc_details.subnets.private : cidr
-    if contains(var.vpc_details.subnets.public, cidr)
-  ]) > 0
-
-  # Trigger validation error if duplicates are found
-  enforce_validation = local.duplicate_cidrs ? error("Duplicate CIDR blocks detected between public and private subnets.") : true
-}
-
-
 locals {
   web_subnet = try(
     element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.web_az], 0),
@@ -68,17 +56,6 @@ locals {
   )
 }
 
-# Check for duplicate CIDR blocks
-locals {
-  cidr_duplicate_found = length([
-    for cidr in var.vpc_details.subnets.private : cidr
-    if contains(var.vpc_details.subnets.public, cidr)
-  ]) > 0
-
-  # Trigger validation error if duplicates found
-  validation_trigger = local.cidr_duplicate_found ? error("Duplicate CIDR blocks detected between public and private subnets.") : true
-}
-
 # Primary EC2 Instances
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.amazon_linux.id
@@ -91,6 +68,7 @@ resource "aws_instance" "web" {
   }
 }
 
+/*
 resource "aws_instance" "db" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
@@ -101,7 +79,18 @@ resource "aws_instance" "db" {
     Name = "EC2 DB"
   }
 }
+*/
 
+resource "aws_instance" "db" {
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t2.micro"
+  availability_zone      = local.db_az
+  subnet_id              = var.vpc_details.subnets.private[index(var.vpc_details.availability_zones, local.db_az)]
+  vpc_security_group_ids = [var.vpc_details.security_groups.database]
+  tags                   = { Name = "EC2 DB" }
+}
+
+/*
 resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
@@ -111,6 +100,16 @@ resource "aws_instance" "bastion" {
   tags = {
     Name = "EC2 Public Bastion"
   }
+}
+*/
+
+resource "aws_instance" "bastion" {
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t2.micro"
+  availability_zone      = local.bastion_az
+  subnet_id              = var.vpc_details.subnets.public[index(var.vpc_details.availability_zones, local.bastion_az)]
+  vpc_security_group_ids = [var.vpc_details.security_groups.bastion]
+  tags                   = { Name = "EC2 Bastion" }
 }
 
 # Duplicate EC2 Instances (Conditional Deployment)
