@@ -61,7 +61,7 @@ resource "aws_instance" "web" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   availability_zone      = local.web_az
-  subnet_id              = element(var.vpc_details.subnets.public, 0)
+  subnet_id              = var.vpc_details.subnets.public[index(var.vpc_details.availability_zones, local.web_az)]
   vpc_security_group_ids = [var.vpc_details.security_groups.web]
   tags = {
     Name = "EC2 Web"
@@ -86,37 +86,39 @@ resource "aws_instance" "bastion" {
   tags                   = { Name = "EC2 Bastion" }
 }
 
-# Duplicate EC2 Instances (Conditional Deployment)
+# Duplicate Web Instance
 resource "aws_instance" "web_duplicate" {
   count                  = var.deploy_alternate_az_set ? 1 : 0
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   availability_zone      = local.duplicate_web_az
-  subnet_id              = element(var.vpc_details.subnets.public, 1)
+  subnet_id              = var.vpc_details.subnets.public[index(var.vpc_details.availability_zones, local.duplicate_web_az)]
   vpc_security_group_ids = [var.vpc_details.security_groups.web]
   tags = {
     Name = "EC2 Web - Duplicate"
   }
 }
 
+# Duplicate DB Instance
 resource "aws_instance" "db_duplicate" {
   count                  = var.deploy_alternate_az_set ? 1 : 0
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   availability_zone      = local.duplicate_db_az
-  subnet_id              = element(var.vpc_details.subnets.private, 1)
+  subnet_id              = var.vpc_details.subnets.private[index(var.vpc_details.availability_zones, local.duplicate_db_az)]
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
   tags = {
     Name = "EC2 DB - Duplicate"
   }
 }
 
+# Duplicate Bastion Instance
 resource "aws_instance" "bastion_duplicate" {
   count                  = var.deploy_alternate_az_set ? 1 : 0
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   availability_zone      = local.duplicate_bastion_az
-  subnet_id              = element(var.vpc_details.subnets.public, 1)
+  subnet_id              = var.vpc_details.subnets.public[index(var.vpc_details.availability_zones, local.duplicate_bastion_az)]
   vpc_security_group_ids = [var.vpc_details.security_groups.bastion]
   tags = {
     Name = "EC2 Public Bastion - Duplicate"
