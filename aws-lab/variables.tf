@@ -39,11 +39,21 @@ variable "availability_zones" {
 variable "private_subnets" {
   description = "List of private subnet CIDR blocks"
   type        = list(string)
+
+  validation {
+    condition     = length(var.private_subnets) == length(distinct(var.private_subnets))
+    error_message = "Duplicate CIDR blocks detected in private_subnets. Please use unique CIDR ranges."
+  }
 }
 
 variable "public_subnets" {
   description = "List of public subnet CIDR blocks"
   type        = list(string)
+
+  validation {
+    condition     = length(var.public_subnets) == length(distinct(var.public_subnets))
+    error_message = "Duplicate CIDR blocks detected in public_subnets. Please use unique CIDR ranges."
+  }
 }
 
 variable "ec2_az_overrides" {

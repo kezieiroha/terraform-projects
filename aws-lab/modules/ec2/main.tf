@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------
 # Module: ec2
-# File: modules/ec2/variables.tf
+# File: modules/ec2/main.tf
 # Author: Kezie Iroha
 # Description: main for ec2 module
 # ------------------------------------------------------------------------------
@@ -22,20 +22,6 @@ data "aws_ami" "amazon_linux" {
   owners = ["amazon"]
 }
 
-# Helper to determine AZ
-#locals {
-#  web_az     = coalesce(var.ec2_az_overrides.web, var.vpc_details.availability_zones[0])
-#  db_az      = coalesce(var.ec2_az_overrides.db, var.vpc_details.availability_zones[0])
-#  bastion_az = coalesce(var.ec2_az_overrides.bastion, var.vpc_details.availability_zones[0])
-#}
-
-# Function to get the correct subnet based on AZ
-locals {
-  web_subnet     = element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.web_az], 0)
-  db_subnet      = element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.private[i] if az == local.db_az], 0)
-  bastion_subnet = element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.bastion_az], 0)
-}
-
 # Determine the default and alternate AZs
 locals {
   az_list      = var.vpc_details.availability_zones
@@ -51,6 +37,46 @@ locals {
   duplicate_web_az     = local.web_az == local.primary_az ? local.alternate_az : local.primary_az
   duplicate_db_az      = local.db_az == local.primary_az ? local.alternate_az : local.primary_az
   duplicate_bastion_az = local.bastion_az == local.primary_az ? local.alternate_az : local.primary_az
+}
+
+# Check for duplicate CIDR blocks across private and public subnets
+locals {
+  duplicate_cidrs = length([
+    for cidr in var.vpc_details.subnets.private : cidr
+    if contains(var.vpc_details.subnets.public, cidr)
+  ]) > 0
+
+  # Trigger validation error if duplicates are found
+  enforce_validation = local.duplicate_cidrs ? error("Duplicate CIDR blocks detected between public and private subnets.") : true
+}
+
+
+locals {
+  web_subnet = try(
+    element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.web_az], 0),
+    null
+  )
+
+  db_subnet = try(
+    element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.private[i] if az == local.db_az], 0),
+    null
+  )
+
+  bastion_subnet = try(
+    element([for i, az in var.vpc_details.availability_zones : var.vpc_details.subnets.public[i] if az == local.bastion_az], 0),
+    null
+  )
+}
+
+# Check for duplicate CIDR blocks
+locals {
+  cidr_duplicate_found = length([
+    for cidr in var.vpc_details.subnets.private : cidr
+    if contains(var.vpc_details.subnets.public, cidr)
+  ]) > 0
+
+  # Trigger validation error if duplicates found
+  validation_trigger = local.cidr_duplicate_found ? error("Duplicate CIDR blocks detected between public and private subnets.") : true
 }
 
 # Primary EC2 Instances
