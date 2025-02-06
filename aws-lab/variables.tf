@@ -71,3 +71,36 @@ variable "deploy_alternate_az_set" {
   type        = bool
   default     = false
 }
+
+variable "db_password" {
+  description = "Password of the database"
+  type        = string
+}
+
+variable "db_master_password" {
+  description = "Master password of the database"
+  type        = string
+}
+
+variable "db_instance_class" {
+  description = "Instance class of the database"
+  type        = string
+  default     = "db.t3.medium"
+}
+
+variable "database_name" {
+  description = "Name of the database"
+  type        = string
+}
+
+variable "db_engine_version" {
+  description = "Engine version of the database"
+  type        = string
+  default     = "14.6"
+}
+
+variable "db_cluster_instance_count" {
+  description = "Number of instances in the database cluster"
+  type        = number
+  default     = 1
+}

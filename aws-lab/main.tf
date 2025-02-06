@@ -20,9 +20,10 @@ module "ec2" {
 }
 
 module "aurora-postgres" {
-  source                    = "./modules/aurora-postgres"
-  db_subnet_group_name      = module.vpc.vpc_details.db_subnet_group
-  db_vpc_security_group_ids = [module.vpc.vpc_details.security_groups.database]
-  db_subnet_ids             = module.vpc.vpc_details.subnets.private
-  db_availability_zones     = module.vpc.vpc_details.availability_zones
+  source             = "./modules/aurora-postgres"
+  vpc_details        = module.vpc.vpc_details
+  database_name      = var.database_name
+  db_password        = var.db_password
+  db_master_password = var.db_master_password
+  db_instance_class  = var.db_instance_class
 }

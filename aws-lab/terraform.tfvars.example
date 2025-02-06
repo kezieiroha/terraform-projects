@@ -23,3 +23,11 @@ ec2_az_overrides = {
 
 # Flag to deploy identical EC2 set in alternate AZ
 deploy_alternate_az_set = true
+
+# Deploy Aurora Postgres Cluster
+database_name             = "auroradb"
+db_password               = "some_password"
+db_master_password        = "some_password"
+db_instance_class         = "db.t3.medium"
+db_cluster_instance_count = 2
+db_engine_version         = "15.5"

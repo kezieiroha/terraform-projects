@@ -5,25 +5,18 @@
 # Description: main for aurora-postgres module
 # ------------------------------------------------------------------------------
 
-resource "aws_db_subnet_group" "aurora_subnet_group" {
-  name        = "aurora-subnet-group"
-  subnet_ids  = module.vpc.vpc_details.subnets.private
-  description = "Aurora PostgreSQL subnet group"
-}
-
 resource "aws_rds_cluster" "postgresql" {
   cluster_identifier = var.db_cluster_identifier
   engine             = "aurora-postgresql"
   engine_version     = var.db_engine_version
-  availability_zones = var.db_availability_zones
+  availability_zones = var.vpc_details.availability_zones
   database_name      = var.database_name
   master_username    = var.db_master_username
   master_password    = var.db_master_password
   storage_encrypted  = true
-  kms_key_id         = var.aws_kms_key
 
   db_subnet_group_name            = aws_db_subnet_group.aurora_subnet_group.name
-  vpc_security_group_ids          = var.db_vpc_security_group_ids
+  vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = var.db_parameter_group_name
 
   backup_retention_period      = var.db_backup_retention_period
@@ -52,3 +45,11 @@ resource "aws_rds_cluster_instance" "aurora_instances" {
   db_subnet_group_name = aws_db_subnet_group.aurora_subnet_group.name
 }
 
+resource "aws_db_subnet_group" "aurora_subnet_group" {
+  name       = "aurora-subnet-group"
+  subnet_ids = var.vpc_details.subnets.private
+
+  tags = {
+    Name = "Aurora DB Subnet Group"
+  }
+}

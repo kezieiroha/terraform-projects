@@ -5,10 +5,28 @@
 # Description: variables for aurora-postgres module
 # ------------------------------------------------------------------------------
 
+variable "vpc_details" {
+  description = "VPC details including subnets, AZs, and security groups"
+  type = object({
+    vpc_id   = string
+    vpc_cidr = string
+    subnets = object({
+      public  = list(string)
+      private = list(string)
+    })
+    security_groups = object({
+      web      = string
+      app      = string
+      database = string
+      bastion  = string
+    })
+    availability_zones = list(string)
+  })
+}
+
 variable "database_name" {
   description = "Name of the database"
   type        = string
-  default     = "aurora-db"
 }
 
 variable "db_username" {
@@ -53,7 +71,7 @@ variable "db_engine_version" {
 variable "db_instance_class" {
   description = "Instance class of the database"
   type        = string
-  default     = "db.t4g.large"
+  default     = "db.t3.medium"
 }
 
 variable "db_cluster_instance_count" {
