@@ -18,3 +18,11 @@ module "ec2" {
   vpc_details      = module.vpc.vpc_details
   ec2_az_overrides = var.ec2_az_overrides
 }
+
+module "aurora-postgres" {
+  source                    = "./modules/aurora-postgres"
+  db_subnet_group_name      = module.vpc.vpc_details.db_subnet_group
+  db_vpc_security_group_ids = [module.vpc.vpc_details.security_groups.database]
+  db_subnet_ids             = module.vpc.vpc_details.subnets.private
+  db_availability_zones     = module.vpc.vpc_details.availability_zones
+}
