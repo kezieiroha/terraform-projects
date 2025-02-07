@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------
-# Module: rds-postgres
-# File: modules/rds-postgres/main.tf
+# Module: rds-single-instance
+# File: modules/rds-single-instance/variables.tf
 # Author: Kezie Iroha
-# Description: main module for rds-postgres
+# Description: variables for rds-single-instance
 # ------------------------------------------------------------------------------

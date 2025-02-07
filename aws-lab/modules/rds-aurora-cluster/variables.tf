@@ -1,8 +1,8 @@
 # ------------------------------------------------------------------------------
-# Module: aurora-postgres
-# File: modules/aurora-postgres/variables.tf
+# Module: rds-aurora-cluster
+# File: modules/rds-aurora-cluster/variables.tf
 # Author: Kezie Iroha
-# Description: variables for aurora-postgres module
+# Description: variables for rds-aurora-cluster module
 # ------------------------------------------------------------------------------
 
 variable "vpc_details" {

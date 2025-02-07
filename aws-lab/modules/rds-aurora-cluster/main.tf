@@ -1,8 +1,8 @@
 # ------------------------------------------------------------------------------
-# Module: aurora-postgres
-# File: modules/aurora-postgres/main.tf
+# Module: rds-aurora-cluster 
+# File: modules/rds-aurora-cluster/main.tf
 # Author: Kezie Iroha
-# Description: main for aurora-postgres module
+# Description: main for rds-aurora-cluster module
 # ------------------------------------------------------------------------------
 
 resource "aws_rds_cluster" "postgresql" {
@@ -27,7 +27,6 @@ resource "aws_rds_cluster" "postgresql" {
   skip_final_snapshot          = var.skip_final_snapshot
 
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
-  #iam_roles                           = var.iam_database_authentication_enabled ? [var.iam_role_arn] : []
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
   tags                            = var.db_tags

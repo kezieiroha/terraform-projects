@@ -1,8 +1,8 @@
 # ------------------------------------------------------------------------------
-# Module: aurora-postgres
-# File: modules/aurora-postgres/outputs.tf
+# Module: rds-aurora-cluster
+# File: modules/rds-aurora-cluster/outputs.tf
 # Author: Kezie Iroha
-# Description: outputs for aurora-postgres module
+# Description: outputs for rds-aurora-cluster module
 # ------------------------------------------------------------------------------
 
 output "aurora_cluster_id" {

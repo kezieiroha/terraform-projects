@@ -8,7 +8,7 @@ module "iam" {
   source                = "./modules/iam"
   aws_region            = var.aws_region
   aws_account_id        = var.aws_account_id
-  db_cluster_identifier = module.aurora-postgres.db_cluster_identifier
+  db_cluster_identifier = module.rds-aurora-cluster.db_cluster_identifier
   db_iam_user           = "iam_db_user"
 }
 
@@ -27,8 +27,8 @@ module "ec2" {
   ec2_az_overrides = var.ec2_az_overrides
 }
 
-module "aurora-postgres" {
-  source                    = "./modules/aurora-postgres"
+module "rds-aurora-cluster" {
+  source                    = "./modules/rds-aurora-cluster"
   vpc_details               = module.vpc.vpc_details
   database_name             = var.database_name
   db_password               = var.db_password
