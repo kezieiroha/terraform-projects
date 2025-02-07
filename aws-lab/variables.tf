@@ -107,7 +107,6 @@ variable "db_engine_version" {
 variable "db_cluster_instance_count" {
   description = "Number of instances in the database cluster"
   type        = number
-  default     = 1
 }
 
 variable "iam_role_name" {

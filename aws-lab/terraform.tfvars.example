@@ -30,7 +30,7 @@ database_name             = "auroradb"
 db_password               = "some_password"
 db_master_password        = "some_password"
 db_instance_class         = "db.t3.medium"
-db_cluster_instance_count = 2
+db_cluster_instance_count = 3
 db_engine_version         = "15.5"
 
 # IAM Authentication
