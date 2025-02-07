@@ -120,3 +120,9 @@ variable "db_iam_user" {
   type        = string
   default     = "iam_db_user"
 }
+
+variable "deploy_aurora" {
+  description = "Set to true to deploy Aurora, false to deploy RDS"
+  type        = bool
+  default     = true
+}

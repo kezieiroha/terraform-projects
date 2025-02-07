@@ -6,26 +6,12 @@
 # ------------------------------------------------------------------------------
 
 output "aurora_cluster_id" {
-  description = "The Aurora Cluster ID"
-  value       = aws_rds_cluster.postgresql.id
+  description = "The Aurora Cluster ID (if deployed)"
+  value       = var.deploy_aurora ? aws_rds_cluster.aurora[0].id : null
 }
 
-output "aurora_cluster_endpoint" {
-  description = "Aurora Cluster Endpoint"
-  value       = aws_rds_cluster.postgresql.endpoint
+output "rds_instance_id" {
+  description = "The RDS Instance ID (if deployed)"
+  value       = var.deploy_aurora ? null : aws_db_instance.rds[0].id
 }
 
-output "aurora_reader_endpoint" {
-  description = "Aurora Reader Endpoint"
-  value       = aws_rds_cluster.postgresql.reader_endpoint
-}
-
-output "aurora_instance_endpoints" {
-  description = "Endpoints of each Aurora instance"
-  value       = aws_rds_cluster_instance.aurora_instances[*].endpoint
-}
-
-output "db_cluster_identifier" {
-  description = "The Aurora PostgreSQL Cluster Identifier"
-  value       = aws_rds_cluster.postgresql.cluster_identifier
-}

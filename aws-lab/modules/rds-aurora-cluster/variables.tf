@@ -282,4 +282,68 @@ variable "iam_role_arn" {
   type        = string
 }
 
+variable "use_aurora" {
+  description = "Toggle to deploy an Aurora Cluster (true) or an RDS instance (false)"
+  type        = bool
+  default     = true
+}
 
+variable "db_allocated_storage" {
+  description = "Allocated storage for RDS instance (non-Aurora)"
+  type        = number
+  default     = 100
+}
+
+variable "db_max_allocated_storage" {
+  description = "Maximum allocated storage for RDS instance (non-Aurora)"
+  type        = number
+  default     = 1000
+}
+
+variable "db_multi_az" {
+  description = "Whether to deploy RDS instance in multi-AZ mode"
+  type        = bool
+  default     = false
+}
+
+variable "db_cluster_parameter_group_parameters" {
+  description = "List of cluster parameter group parameters"
+  type        = list(map(string))
+  default = [
+    { name = "log_min_duration_statement", value = "250" }
+  ]
+}
+
+variable "db_cluster_parameter_group_tags" {
+  description = "Tags for the cluster parameter group"
+  type        = map(string)
+  default     = {}
+}
+
+variable "db_password" {
+  description = "Password of the database"
+  type        = string
+}
+
+variable "iam_role_arn" {
+  description = "IAM Role ARN for Aurora authentication"
+  type        = string
+}
+
+variable "deploy_aurora" {
+  description = "Set to true to deploy Aurora, false to deploy RDS"
+  type        = bool
+  default     = true
+}
+
+variable "db_parameter_group_name_aurora" {
+  description = "Parameter group for Aurora cluster"
+  type        = string
+  default     = "aurora-postgresql16"
+}
+
+variable "db_parameter_group_name_rds" {
+  description = "Parameter group for RDS instance"
+  type        = string
+  default     = "postgres16"
+}
