@@ -116,11 +116,6 @@ variable "iam_role_name" {
   default     = "AuroraAuthRole"
 }
 
-variable "db_cluster_identifier" {
-  description = "Aurora Cluster Identifier"
-  type        = string
-}
-
 variable "db_iam_user" {
   description = "IAM User for Aurora authentication"
   type        = string
