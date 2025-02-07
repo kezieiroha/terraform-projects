@@ -28,6 +28,7 @@ resource "aws_rds_cluster" "postgresql" {
 
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
 
+  /*
   # Validate that iam auth is enabled before assignment 
   iam_roles = var.iam_database_authentication_enabled ? [
     {
@@ -35,6 +36,11 @@ resource "aws_rds_cluster" "postgresql" {
       feature_name = "rds_iam" # feature name for Aurora PostgreSQL IAM auth
     }
   ] : []
+  }
+  */
+
+  #corrected version of the iam_roles configuration: https://aws.amazon.com/blogs/database/integrate-amazon-aurora-mysql-and-amazon-bedrock-using-sql/
+  iam_roles = var.iam_database_authentication_enabled ? [var.iam_role_arn] : []
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 
