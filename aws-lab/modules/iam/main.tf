@@ -31,7 +31,8 @@ resource "aws_iam_policy" "aurora_auth_policy" {
       Action = [
         "rds-db:connect"
       ],
-      Resource = "arn:aws:rds-db:${var.aws_region}:${var.aws_account_id}:dbuser/${var.db_cluster_identifier}/${var.db_iam_user}"
+      # Apply for all users
+      Resource = "arn:aws:rds-db:${var.aws_region}:${var.aws_account_id}:dbuser/${var.db_cluster_identifier}/*"
     }]
   })
 }
