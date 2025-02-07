@@ -25,7 +25,7 @@ Each directory in this repository represents a separate Terraform lab or module.
    - **Generate an RDS IAM Token from the Bastion Host:**
      ```hcl
      aws rds generate-db-auth-token \
-      --hostname aurora-cluster-1.cluster-cv244s608wpb.us-east-1.rds.amazonaws.com \
+      --hostname <aurora-cluster-endpoint-name> \
       --port 5432 \
       --region us-east-1 \
       --username iam_db_user
@@ -34,11 +34,11 @@ Each directory in this repository represents a separate Terraform lab or module.
    - **Connect using psql:**
      ```hcl
      PGPASSWORD=$(aws rds generate-db-auth-token \
-      --hostname aurora-cluster-1.cluster-cv244s608wpb.us-east-1.rds.amazonaws.com \
+      --hostname <aurora-cluster-endpoint-name> \
       --port 5432 \
       --region us-east-1 \
       --username iam_db_user) \
-      psql "host=aurora-cluster-1.cluster-cv244s608wpb.us-east-1.rds.amazonaws.com user=iam_db_user dbname=auroradb sslmode=require"
+      psql "host=<aurora-cluster-endpoint-name> user=iam_db_user dbname=auroradb sslmode=require"
      ```
 
 ---
