@@ -34,4 +34,5 @@ module "aurora-postgres" {
   db_password        = var.db_password
   db_master_password = var.db_master_password
   db_instance_class  = var.db_instance_class
+  iam_role_arn       = module.iam.aurora_auth_role_arn
 }

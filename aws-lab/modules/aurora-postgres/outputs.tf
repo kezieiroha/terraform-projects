@@ -24,3 +24,8 @@ output "aurora_instance_endpoints" {
   description = "Endpoints of each Aurora instance"
   value       = aws_rds_cluster_instance.aurora_instances[*].endpoint
 }
+
+output "db_cluster_identifier" {
+  description = "The Aurora PostgreSQL Cluster Identifier"
+  value       = aws_rds_cluster.postgresql.cluster_identifier
+}

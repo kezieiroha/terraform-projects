@@ -27,7 +27,7 @@ resource "aws_rds_cluster" "postgresql" {
   skip_final_snapshot          = var.skip_final_snapshot
 
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
-  iam_roles                           = [module.iam.aurora_auth_role_arn]
+  iam_roles                           = [var.iam_role_arn]
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 
