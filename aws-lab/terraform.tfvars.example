@@ -1,5 +1,6 @@
 # ------------------------------------------------------------------------------
 # File: terraform.tfvars
+# Author: Kezie Iroha
 # Description: Variables for single-region, multi-AZ deployment
 # ------------------------------------------------------------------------------
 
@@ -31,3 +32,5 @@ db_master_password        = "some_password"
 db_instance_class         = "db.t3.medium"
 db_cluster_instance_count = 2
 db_engine_version         = "15.5"
+
+# IAM Authentication

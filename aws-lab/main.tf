@@ -4,6 +4,10 @@
 # Description: Parent main for project
 # ------------------------------------------------------------------------------
 
+module "iam" {
+  source = "./modules/iam"
+}
+
 module "vpc" {
   source             = "./modules/vpc"
   vpc_name           = var.vpc_name
