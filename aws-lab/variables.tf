@@ -9,6 +9,11 @@ variable "aws_region" {
   type        = string
 }
 
+variable "aws_account_id" {
+  description = "AWS Account ID"
+  type        = string
+}
+
 variable "key_name" {
   description = "The name of the SSH key pair to be used for EC2 instances"
   type        = string
@@ -103,4 +108,16 @@ variable "db_cluster_instance_count" {
   description = "Number of instances in the database cluster"
   type        = number
   default     = 1
+}
+
+variable "iam_role_name" {
+  description = "IAM role name for Aurora authentication"
+  type        = string
+  default     = "AuroraAuthRole"
+}
+
+variable "db_iam_user" {
+  description = "IAM User for Aurora authentication"
+  type        = string
+  default     = "iam_db_user"
 }

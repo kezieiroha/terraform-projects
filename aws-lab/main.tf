@@ -5,7 +5,11 @@
 # ------------------------------------------------------------------------------
 
 module "iam" {
-  source = "./modules/iam"
+  source                = "./modules/iam"
+  aws_region            = var.aws_region
+  aws_account_id        = var.aws_account_id
+  db_cluster_identifier = module.aurora-postgres.db_cluster_identifier
+  db_iam_user           = "iam_db_user"
 }
 
 module "vpc" {
@@ -30,4 +34,5 @@ module "aurora-postgres" {
   db_password        = var.db_password
   db_master_password = var.db_master_password
   db_instance_class  = var.db_instance_class
+  iam_role_arn       = module.iam.aurora_auth_role_arn
 }

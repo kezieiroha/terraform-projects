@@ -26,12 +26,11 @@ resource "aws_rds_cluster" "postgresql" {
   final_snapshot_identifier    = var.final_snapshot_identifier
   skip_final_snapshot          = var.skip_final_snapshot
 
-  iam_roles                           = var.iam_roles
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
+  #iam_roles                           = var.iam_database_authentication_enabled ? [var.iam_role_arn] : []
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
-
-  tags = var.db_tags
+  tags                            = var.db_tags
 }
 
 resource "aws_rds_cluster_instance" "aurora_instances" {

@@ -276,3 +276,10 @@ variable "db_proxy_name" {
   type        = string
   default     = "aurora-db-proxy"
 }
+
+variable "iam_role_arn" {
+  description = "IAM Role ARN for Aurora authentication"
+  type        = string
+}
+
+

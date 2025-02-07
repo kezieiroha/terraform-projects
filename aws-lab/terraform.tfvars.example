@@ -34,3 +34,5 @@ db_cluster_instance_count = 2
 db_engine_version         = "15.5"
 
 # IAM Authentication
+aws_account_id = "123456789012"
+db_iam_user    = "iam_db_user"
