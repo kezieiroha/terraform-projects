@@ -28,7 +28,7 @@ module "ec2" {
 }
 
 module "rds-aurora-cluster" {
-  source                    = "./modules/rds-aurora-cluster"
+  source                    = "./modules/aurora-postgres"
   vpc_details               = module.vpc.vpc_details
   database_name             = var.database_name
   db_password               = var.db_password
