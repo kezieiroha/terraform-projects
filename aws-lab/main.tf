@@ -18,3 +18,12 @@ module "ec2" {
   vpc_details      = module.vpc.vpc_details
   ec2_az_overrides = var.ec2_az_overrides
 }
+
+module "aurora-postgres" {
+  source             = "./modules/aurora-postgres"
+  vpc_details        = module.vpc.vpc_details
+  database_name      = var.database_name
+  db_password        = var.db_password
+  db_master_password = var.db_master_password
+  db_instance_class  = var.db_instance_class
+}
