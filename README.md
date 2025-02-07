@@ -15,11 +15,31 @@ Each directory in this repository represents a separate Terraform lab or module.
 ---
 
 ## **Requirements**
-To use these Terraform configurations, ensure you have the following installed:
+**To use these Terraform configurations, ensure you have the following installed:**
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) (latest version)
 - AWS CLI (`aws configure` for authentication)
 - An AWS account with necessary IAM permissions
+
+  **Connect Aurora/RDS:**
+   - **Generate an RDS IAM Token from the Bastion Host:**
+     ```hcl
+     aws rds generate-db-auth-token \
+      --hostname aurora-cluster-1.cluster-cv244s608wpb.us-east-1.rds.amazonaws.com \
+      --port 5432 \
+      --region us-east-1 \
+      --username iam_db_user
+     ```
+
+   - **Connect using psql:**
+     ```hcl
+     PGPASSWORD=$(aws rds generate-db-auth-token \
+      --hostname aurora-cluster-1.cluster-cv244s608wpb.us-east-1.rds.amazonaws.com \
+      --port 5432 \
+      --region us-east-1 \
+      --username iam_db_user) \
+      psql "host=aurora-cluster-1.cluster-cv244s608wpb.us-east-1.rds.amazonaws.com user=iam_db_user dbname=auroradb sslmode=require"
+     ```
 
 ---
 
