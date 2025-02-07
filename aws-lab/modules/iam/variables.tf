@@ -29,4 +29,5 @@ variable "db_cluster_identifier" {
 variable "db_iam_user" {
   description = "IAM User for Aurora authentication"
   type        = string
+  default     = "iam_db_user"
 }
