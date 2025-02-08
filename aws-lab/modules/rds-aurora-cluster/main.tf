@@ -185,7 +185,7 @@ resource "aws_rds_cluster" "aurora" {
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg[0].name
   skip_final_snapshot             = var.skip_final_snapshot
-  final_snapshot_identifier       = "${var.db_cluster_identifier}-final-snapshot"
+  #final_snapshot_identifier       = "${var.db_cluster_identifier}-final-snapshot"
 
   tags = {
     Name        = var.db_cluster_identifier
