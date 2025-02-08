@@ -31,7 +31,6 @@ module "rds-aurora-cluster" {
   source                    = "./modules/rds-aurora-cluster"
   vpc_details               = module.vpc.vpc_details
   database_name             = var.database_name
-  db_password               = var.db_password
   db_master_password        = var.db_master_password
   db_instance_class         = var.db_instance_class
   db_cluster_instance_count = var.db_cluster_instance_count

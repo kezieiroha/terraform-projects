@@ -2,7 +2,7 @@
 # Module: rds-aurora-cluster
 # File: modules/rds-aurora-cluster/variables.tf
 # Author: Kezie Iroha
-# Description: variables for rds-aurora-cluster module
+# Description: Variables for RDS/Aurora Cluster with best practices
 # ------------------------------------------------------------------------------
 
 variable "vpc_details" {
@@ -29,314 +29,160 @@ variable "database_name" {
   type        = string
 }
 
-variable "db_username" {
-  description = "Username of the database"
-  type        = string
-  default     = "postgres"
-}
-
-variable "db_password" {
-  description = "Password of the database"
-  type        = string
-}
 variable "db_master_username" {
-  description = "Master username of the database"
+  description = "Master username for the database"
   type        = string
   default     = "postgres"
 }
 
 variable "db_master_password" {
-  description = "Master password of the database"
+  description = "Master password for the database"
   type        = string
 }
 
 variable "db_port" {
-  description = "Port of the database"
+  description = "Database port"
   type        = number
   default     = 5432
 }
 
 variable "db_engine" {
-  description = "Engine of the database"
+  description = "Database engine"
   type        = string
   default     = "aurora-postgresql"
 }
 
 variable "db_engine_version" {
-  description = "Engine version of the database"
+  description = "Database engine version"
   type        = string
-  default     = "14.6"
+  default     = "16"
 }
 
 variable "db_instance_class" {
-  description = "Instance class of the database"
+  description = "Database instance class"
   type        = string
   default     = "db.t3.medium"
 }
 
 variable "db_cluster_instance_count" {
-  description = "Number of instances in the database cluster"
+  description = "Number of instances in the Aurora cluster"
   type        = number
   default     = 1
 }
 
-variable "db_cluster_instance_identifier" {
-  description = "Identifier of the database cluster instance"
-  type        = string
-  default     = "aurora-cluster-instance-1"
-}
-
 variable "db_cluster_identifier" {
-  description = "Identifier of the database cluster"
+  description = "Identifier for the database cluster"
   type        = string
   default     = "aurora-cluster-1"
 }
 
 variable "db_backup_retention_period" {
-  description = "Backup retention period of the database"
+  description = "Backup retention period in days"
   type        = number
   default     = 7
 }
 
 variable "db_preferred_backup_window" {
-  description = "Preferred backup window of the database"
+  description = "Preferred backup window"
   type        = string
   default     = "02:00-03:00"
 }
 
 variable "db_preferred_maintenance_window" {
-  description = "Preferred maintenance window of the database"
+  description = "Preferred maintenance window"
   type        = string
   default     = "sun:07:00-sun:08:00"
 }
 
-variable "db_publicly_accessible" {
-  description = "Whether the database is publicly accessible"
-  type        = bool
-  default     = true
-}
-
 variable "db_deletion_protection" {
-  description = "Whether the database is protected from deletion"
+  description = "Enable deletion protection"
   type        = bool
   default     = true
 }
 
 variable "db_storage_encrypted" {
-  description = "Whether the database is encrypted"
-  type        = bool
-  default     = true
-}
-
-variable "db_skip_final_snapshot" {
-  description = "Whether to skip the final snapshot"
-  type        = bool
-  default     = true
-}
-
-variable "db_apply_immediately" {
-  description = "Whether to apply changes immediately"
-  type        = bool
-  default     = true
-}
-
-variable "db_vpc_security_group_ids" {
-  description = "List of VPC security groups to associate with the cluster"
-  type        = list(string)
-  default     = []
-}
-
-variable "db_tags" {
-  description = "Tags to associate with the database"
-  type        = map(string)
-  default     = {}
-}
-
-variable "db_parameter_group_name" {
-  description = "Name of the database parameter group"
-  type        = string
-  default     = "default.aurora-postgresql14"
-}
-
-variable "db_parameter_group_family" {
-  description = "Family of the database parameter group"
-  type        = string
-  default     = "aurora-postgresql14"
-}
-
-variable "db_parameter_group_description" {
-  description = "Description of the database parameter group"
-  type        = string
-  default     = "default.aurora-postgresql14 parameter group for aurora-postgres"
-}
-
-variable "db_parameter_group_parameters" {
-  description = "Parameters of the database parameter group"
-  type        = list(map(string))
-  default = [
-    {
-      name  = "log_min_duration_statement"
-      value = "250"
-    }
-  ]
-}
-
-variable "db_parameter_group_tags" {
-  description = "Tags to associate with the database parameter group"
-  type        = map(string)
-  default     = {}
-}
-
-variable "db_availability_zones" {
-  description = "Availability zones for the database"
-  type        = list(string)
-  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
-}
-
-variable "db_source_region" {
-  description = "Source region for the database"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "db_global_cluster_identifier" {
-  description = "Identifier of the global database cluster"
-  type        = string
-  default     = "global-db-cluster"
-}
-
-variable "db_source_db_cluster_identifier" {
-  description = "Identifier of the source database cluster"
-  type        = string
-  default     = "aurora-cluster-1"
-}
-
-variable "db_enable_cross_region_read" {
-  description = "Whether to enable cross region read"
-  type        = bool
-  default     = true
-}
-
-variable "db_enable_rds_proxy" {
-  description = "Whether to enable RDS proxy"
-  type        = bool
-  default     = true
-}
-
-variable "aws_kms_key" {
-  description = "KMS key to encrypt the RDS proxy"
-  type        = string
-  default     = "aws_rds"
-}
-
-variable "copy_tags_to_snapshot" {
-  description = "Whether to copy tags to snapshot"
-  type        = bool
-  default     = true
-}
-
-variable "final_snapshot_identifier" {
-  description = "Identifier of the final snapshot"
-  type        = string
-  default     = "aurora-cluster-final-snapshot"
-}
-
-variable "skip_final_snapshot" {
-  description = "Whether to skip the final snapshot"
-  type        = bool
-  default     = true
-}
-
-variable "iam_roles" {
-  description = "IAM roles to associate with the database"
-  type        = list(string)
-  default     = []
-}
-
-variable "iam_database_authentication_enabled" {
-  description = "Whether to enable database authentication"
-  type        = bool
-  default     = true
-}
-
-variable "enabled_cloudwatch_logs_exports" {
-  description = "List of log types to export to cloudwatch"
-  type        = list(string)
-  default     = ["postgresql"]
-}
-
-variable "db_enable_http_endpoint" {
-  description = "Whether to enable RDS proxy web access"
-  type        = bool
-  default     = true
-}
-
-variable "db_proxy_name" {
-  description = "Name of the RDS proxy"
-  type        = string
-  default     = "aurora-db-proxy"
-}
-
-variable "iam_role_arn" {
-  description = "IAM Role ARN for Aurora authentication"
-  type        = string
-}
-
-variable "use_aurora" {
-  description = "Toggle to deploy an Aurora Cluster (true) or an RDS instance (false)"
+  description = "Enable encryption for database storage"
   type        = bool
   default     = true
 }
 
 variable "db_allocated_storage" {
-  description = "Allocated storage for RDS instance (non-Aurora)"
+  description = "Allocated storage for RDS instance"
   type        = number
   default     = 100
 }
 
 variable "db_max_allocated_storage" {
-  description = "Maximum allocated storage for RDS instance (non-Aurora)"
+  description = "Maximum allocated storage for RDS instance"
   type        = number
   default     = 1000
 }
 
 variable "db_multi_az" {
-  description = "Whether to deploy RDS instance in multi-AZ mode"
+  description = "Deploy RDS in Multi-AZ mode"
   type        = bool
   default     = false
 }
 
-variable "db_cluster_parameter_group_parameters" {
-  description = "List of cluster parameter group parameters"
-  type        = list(map(string))
-  default = [
-    { name = "log_min_duration_statement", value = "250" }
-  ]
+variable "iam_role_arn" {
+  description = "IAM Role ARN for database authentication"
+  type        = string
 }
 
-variable "db_cluster_parameter_group_tags" {
-  description = "Tags for the cluster parameter group"
-  type        = map(string)
-  default     = {}
+variable "enabled_cloudwatch_logs_exports" {
+  description = "Log types to export to CloudWatch"
+  type        = list(string)
+  default     = ["postgresql"]
 }
 
-# ------------------------------------------------------------------------------
-# Added variables for Aurora vs RDS selection and parameter groups
-# ------------------------------------------------------------------------------
 variable "deploy_aurora" {
-  description = "Set to true to deploy Aurora, false to deploy RDS"
+  description = "Deploy an Aurora Cluster (true) or RDS instance (false)"
   type        = bool
   default     = true
 }
 
-variable "db_parameter_group_name_aurora" {
-  description = "Parameter group for Aurora cluster"
+variable "rds_deployment_type" {
+  description = "Deployment type: 'aurora', 'multi_az_cluster', 'multi_az_instance', or 'single_instance'"
+  type        = string
+  default     = "aurora"
+  validation {
+    condition     = contains(["aurora", "multi_az_cluster", "multi_az_instance", "single_instance"], var.rds_deployment_type)
+    error_message = "Valid options: 'aurora', 'multi_az_cluster', 'multi_az_instance', 'single_instance'."
+  }
+}
+
+variable "db_parameter_group_family_aurora" {
+  description = "Parameter group family for Aurora PostgreSQL"
   type        = string
   default     = "aurora-postgresql16"
 }
 
-variable "db_parameter_group_name_rds" {
-  description = "Parameter group for RDS instance"
+variable "db_parameter_group_family_rds" {
+  description = "Parameter group family for RDS PostgreSQL"
   type        = string
   default     = "postgres16"
+}
+
+variable "db_subnet_group_name" {
+  description = "Name of the RDS subnet group"
+  type        = string
+  default     = "rds-subnet-group"
+}
+
+variable "max_connections" {
+  description = "Maximum database connections"
+  type        = number
+  default     = 200
+}
+
+variable "db_parameter_group_name_aurora" {
+  description = "Parameter group name for Aurora PostgreSQL"
+  type        = string
+  default     = "aurora-pg-parameter-group"
+}
+
+variable "db_parameter_group_name_rds" {
+  description = "Parameter group name for RDS PostgreSQL"
+  type        = string
+  default     = "rds-pg-parameter-group"
 }
