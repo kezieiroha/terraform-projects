@@ -320,16 +320,9 @@ variable "db_cluster_parameter_group_tags" {
   default     = {}
 }
 
-variable "db_password" {
-  description = "Password of the database"
-  type        = string
-}
-
-variable "iam_role_arn" {
-  description = "IAM Role ARN for Aurora authentication"
-  type        = string
-}
-
+# ------------------------------------------------------------------------------
+# Added variables for Aurora vs RDS selection and parameter groups
+# ------------------------------------------------------------------------------
 variable "deploy_aurora" {
   description = "Set to true to deploy Aurora, false to deploy RDS"
   type        = bool

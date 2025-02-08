@@ -26,6 +26,7 @@ ec2_az_overrides = {
 deploy_alternate_az_set = true
 
 # Deploy Aurora Postgres Cluster
+deploy_aurora             = true
 database_name             = "auroradb"
 db_password               = "some_password"
 db_master_password        = "some_password"

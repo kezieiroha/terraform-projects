@@ -15,3 +15,7 @@ output "rds_instance_id" {
   value       = var.deploy_aurora ? null : aws_db_instance.rds[0].id
 }
 
+output "db_cluster_identifier" {
+  description = "The Aurora or RDS Cluster Identifier"
+  value       = var.deploy_aurora ? aws_rds_cluster.aurora[0].cluster_identifier : aws_db_instance.rds[0].identifier
+}
