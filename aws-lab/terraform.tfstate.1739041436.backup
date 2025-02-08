@@ -1,0 +1,99 @@
+{
+  "version": 4,
+  "terraform_version": "1.10.5",
+  "serial": 968,
+  "lineage": "ff5cb3a0-d4c4-e59c-5eec-14d5ca9040fe",
+  "outputs": {},
+  "resources": [
+    {
+      "module": "module.ec2",
+      "mode": "data",
+      "type": "aws_ami",
+      "name": "amazon_linux",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "architecture": "x86_64",
+            "arn": "arn:aws:ec2:us-east-1::image/ami-041917585fdd974ca",
+            "block_device_mappings": [
+              {
+                "device_name": "/dev/xvda",
+                "ebs": {
+                  "delete_on_termination": "true",
+                  "encrypted": "false",
+                  "iops": "3000",
+                  "snapshot_id": "snap-0d042a16cbfa15cf6",
+                  "throughput": "125",
+                  "volume_size": "2",
+                  "volume_type": "gp3"
+                },
+                "no_device": "",
+                "virtual_name": ""
+              }
+            ],
+            "boot_mode": "uefi-preferred",
+            "creation_date": "2025-02-04T00:10:52.000Z",
+            "deprecation_time": "2025-05-05T00:11:00.000Z",
+            "description": "Amazon Linux 2023 AMI 2023.6.20250203.1 x86_64 Minimal HVM kernel-6.1",
+            "ena_support": true,
+            "executable_users": null,
+            "filter": [
+              {
+                "name": "name",
+                "values": [
+                  "al2023-ami-*-x86_64"
+                ]
+              },
+              {
+                "name": "virtualization-type",
+                "values": [
+                  "hvm"
+                ]
+              }
+            ],
+            "hypervisor": "xen",
+            "id": "ami-041917585fdd974ca",
+            "image_id": "ami-041917585fdd974ca",
+            "image_location": "amazon/al2023-ami-minimal-2023.6.20250203.1-kernel-6.1-x86_64",
+            "image_owner_alias": "amazon",
+            "image_type": "machine",
+            "imds_support": "v2.0",
+            "include_deprecated": false,
+            "kernel_id": "",
+            "most_recent": true,
+            "name": "al2023-ami-minimal-2023.6.20250203.1-kernel-6.1-x86_64",
+            "name_regex": null,
+            "owner_id": "137112412989",
+            "owners": [
+              "amazon"
+            ],
+            "platform": "",
+            "platform_details": "Linux/UNIX",
+            "product_codes": [],
+            "public": true,
+            "ramdisk_id": "",
+            "root_device_name": "/dev/xvda",
+            "root_device_type": "ebs",
+            "root_snapshot_id": "snap-0d042a16cbfa15cf6",
+            "sriov_net_support": "simple",
+            "state": "available",
+            "state_reason": {
+              "code": "UNSET",
+              "message": "UNSET"
+            },
+            "tags": {},
+            "timeouts": null,
+            "tpm_support": "",
+            "uefi_data": null,
+            "usage_operation": "RunInstances",
+            "virtualization_type": "hvm"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

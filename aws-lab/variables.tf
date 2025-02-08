@@ -131,12 +131,12 @@ variable "rds_deployment_type" {
 variable "skip_final_snapshot" {
   description = "Skip final snapshot before deleting the database"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "db_deletion_protection" {
   description = "Enable deletion protection"
   type        = bool
-  default     = true
+  default     = false
 }
 
