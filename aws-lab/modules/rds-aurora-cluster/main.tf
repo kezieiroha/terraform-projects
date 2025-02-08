@@ -201,7 +201,7 @@ resource "aws_rds_cluster" "aurora" {
 # Deploy Aurora Cluster Instances
 # ------------------------------------------------------------------------------
 resource "aws_rds_cluster_instance" "aurora_instances" {
-  count                = var.deploy_aurora ? 0 : (var.rds_deployment_type == "aurora" ? 1 : 0)
+  count                = var.deploy_aurora ? var.db_cluster_instance_count : 0
   identifier           = "${var.db_cluster_identifier}-instance-${count.index}"
   cluster_identifier   = aws_rds_cluster.aurora[0].id
   instance_class       = var.db_instance_class
