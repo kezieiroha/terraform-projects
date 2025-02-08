@@ -175,6 +175,7 @@ resource "aws_rds_cluster" "aurora" {
   storage_encrypted                   = true
   deletion_protection                 = var.db_deletion_protection
   iam_database_authentication_enabled = true
+  enabled_cloudwatch_logs_exports     = var.enabled_cloudwatch_logs_exports
 
   backup_retention_period      = var.db_backup_retention_period
   preferred_backup_window      = var.db_preferred_backup_window
@@ -186,10 +187,33 @@ resource "aws_rds_cluster" "aurora" {
   skip_final_snapshot             = var.skip_final_snapshot
   final_snapshot_identifier       = "${var.db_cluster_identifier}-final-snapshot"
 
+  tags = {
+    Name        = var.db_cluster_identifier
+    Environment = var.environment
+  }
 
   # Ensure the parameter group is created before the cluster
   depends_on = [aws_rds_cluster_parameter_group.aurora_pg]
 
+}
+
+# ------------------------------------------------------------------------------
+# Deploy Aurora Cluster Instances
+# ------------------------------------------------------------------------------
+resource "aws_rds_cluster_instance" "aurora_instances" {
+  count                = var.deploy_aurora ? 0 : (var.rds_deployment_type == "aurora" ? 1 : 0)
+  identifier           = "${var.db_cluster_identifier}-instance-${count.index}"
+  cluster_identifier   = aws_rds_cluster.aurora[0].id
+  instance_class       = var.db_instance_class
+  engine               = var.db_engine
+  engine_version       = var.db_engine_version
+  publicly_accessible  = false
+  db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
+
+  tags = {
+    Name        = "${var.db_cluster_identifier}-instance-${count.index}"
+    Environment = var.environment
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -212,6 +236,11 @@ resource "aws_rds_cluster" "multi_az_cluster" {
   db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pg[0].name
+
+  tags = {
+    Name        = "${var.db_cluster_identifier}-instance-${count.index}"
+    Environment = var.environment
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -233,6 +262,11 @@ resource "aws_db_instance" "multi_az_instance" {
 
   db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
+
+  tags = {
+    Name        = "${var.db_cluster_identifier}-instance-${count.index}"
+    Environment = var.environment
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -253,5 +287,10 @@ resource "aws_db_instance" "single_instance" {
 
   db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
+
+  tags = {
+    Name        = "${var.db_cluster_identifier}-instance-${count.index}"
+    Environment = var.environment
+  }
 }
 

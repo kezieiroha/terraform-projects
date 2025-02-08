@@ -140,3 +140,8 @@ variable "db_deletion_protection" {
   default     = false
 }
 
+variable "environment" {
+  description = "Deployment environment (e.g., dev, staging, prod)"
+  type        = string
+  default     = "Lab"
+}

@@ -192,3 +192,9 @@ variable "skip_final_snapshot" {
   type        = bool
   default     = false
 }
+
+variable "environment" {
+  description = "Deployment environment (e.g., dev, staging, prod)"
+  type        = string
+  default     = "Lab"
+}
