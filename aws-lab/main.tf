@@ -36,6 +36,7 @@ module "rds-aurora-cluster" {
   db_cluster_instance_count = var.db_cluster_instance_count
   iam_role_arn              = module.iam.aurora_auth_role_arn
   deploy_aurora             = var.deploy_aurora
+  db_deletion_protection    = var.db_deletion_protection
   environment               = var.environment
 }
 

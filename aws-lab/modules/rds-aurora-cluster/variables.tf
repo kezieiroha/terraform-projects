@@ -97,7 +97,6 @@ variable "db_preferred_maintenance_window" {
 variable "db_deletion_protection" {
   description = "Enable deletion protection"
   type        = bool
-  default     = true
 }
 
 variable "db_storage_encrypted" {

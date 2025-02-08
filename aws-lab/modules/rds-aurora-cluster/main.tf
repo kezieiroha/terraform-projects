@@ -236,6 +236,7 @@ resource "aws_rds_cluster" "multi_az_cluster" {
   db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pg[0].name
+  deletion_protection             = var.db_deletion_protection
 
   tags = {
     Name        = "${var.db_cluster_identifier}-instance-${count.index}"
@@ -256,9 +257,9 @@ resource "aws_db_instance" "multi_az_instance" {
   max_allocated_storage = var.db_max_allocated_storage
   storage_encrypted     = true
   multi_az              = true
-  deletion_protection   = var.db_deletion_protection
 
   backup_retention_period = var.db_backup_retention_period
+  deletion_protection     = var.db_deletion_protection
 
   db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [var.vpc_details.security_groups.database]

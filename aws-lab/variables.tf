@@ -17,9 +17,7 @@ variable "aws_account_id" {
 variable "key_name" {
   description = "The name of the SSH key pair to be used for EC2 instances"
   type        = string
-  default     = ""
 }
-
 
 variable "vpc_name" {
   description = "Name of the VPC"
@@ -68,13 +66,12 @@ variable "ec2_az_overrides" {
     db      = optional(string)
     bastion = optional(string)
   })
-  default = {}
+  #default = {}
 }
 
 variable "deploy_alternate_az_set" {
   description = "Flag to deploy an identical EC2 set in the alternate AZ"
   type        = bool
-  default     = false
 }
 
 variable "db_master_password" {
@@ -85,7 +82,6 @@ variable "db_master_password" {
 variable "db_instance_class" {
   description = "Instance class of the database"
   type        = string
-  default     = "db.t3.medium"
 }
 
 variable "database_name" {
@@ -96,7 +92,6 @@ variable "database_name" {
 variable "db_engine_version" {
   description = "Engine version of the database"
   type        = string
-  default     = "14.6"
 }
 
 variable "db_cluster_instance_count" {
@@ -113,7 +108,6 @@ variable "iam_role_name" {
 variable "db_iam_user" {
   description = "IAM User for Aurora authentication"
   type        = string
-  default     = "iam_db_user"
 }
 
 variable "deploy_aurora" {
@@ -137,11 +131,9 @@ variable "skip_final_snapshot" {
 variable "db_deletion_protection" {
   description = "Enable deletion protection"
   type        = bool
-  default     = false
 }
 
 variable "environment" {
   description = "Deployment environment (e.g., dev, staging, prod)"
   type        = string
-  default     = "Lab"
 }
