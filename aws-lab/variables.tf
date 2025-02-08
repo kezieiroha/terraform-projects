@@ -77,11 +77,6 @@ variable "deploy_alternate_az_set" {
   default     = false
 }
 
-variable "db_password" {
-  description = "Password of the database"
-  type        = string
-}
-
 variable "db_master_password" {
   description = "Master password of the database"
   type        = string
@@ -119,4 +114,34 @@ variable "db_iam_user" {
   description = "IAM User for Aurora authentication"
   type        = string
   default     = "iam_db_user"
+}
+
+variable "deploy_aurora" {
+  description = "Set to true to deploy Aurora, false to deploy RDS"
+  type        = bool
+  default     = true
+}
+
+variable "rds_deployment_type" {
+  description = "Deployment type: 'aurora', 'multi_az_cluster', 'multi_az_instance', or 'single_instance'"
+  type        = string
+  default     = "aurora"
+}
+
+variable "skip_final_snapshot" {
+  description = "Skip final snapshot before deleting the database"
+  type        = bool
+  default     = true
+}
+
+variable "db_deletion_protection" {
+  description = "Enable deletion protection"
+  type        = bool
+  default     = false
+}
+
+variable "environment" {
+  description = "Deployment environment (e.g., dev, staging, prod)"
+  type        = string
+  default     = "Lab"
 }

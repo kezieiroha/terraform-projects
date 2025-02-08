@@ -28,13 +28,15 @@ module "ec2" {
 }
 
 module "rds-aurora-cluster" {
-  source                    = "./modules/aurora-postgres"
+  source                    = "./modules/rds-aurora-cluster"
   vpc_details               = module.vpc.vpc_details
   database_name             = var.database_name
-  db_password               = var.db_password
   db_master_password        = var.db_master_password
   db_instance_class         = var.db_instance_class
   db_cluster_instance_count = var.db_cluster_instance_count
   iam_role_arn              = module.iam.aurora_auth_role_arn
+  deploy_aurora             = var.deploy_aurora
+  environment               = var.environment
 }
+
 

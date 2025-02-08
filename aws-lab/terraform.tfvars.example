@@ -10,7 +10,6 @@ vpc_name   = "kezie-lab-vpc"
 # Multi-AZ deployment within a single region
 vpc_cidr_block = "10.0.0.0/16"
 az_count       = 2
-
 private_subnets    = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 public_subnets     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -23,16 +22,32 @@ ec2_az_overrides = {
 }
 
 # Flag to deploy identical EC2 set in alternate AZ
-deploy_alternate_az_set = true
+deploy_alternate_az_set = false
+
+# Deploy Aurora 
+deploy_aurora = false
+
+# Deploy RDS (only when deploy_aurora = false)
+# Supported options: aurora | multi_az_cluster | multi_az_instance | single_instance
+rds_deployment_type = "multi_az_cluster"
 
 # Deploy Aurora Postgres Cluster
+deploy_aurora             = true
 database_name             = "auroradb"
-db_password               = "some_password"
 db_master_password        = "some_password"
 db_instance_class         = "db.t3.medium"
 db_cluster_instance_count = 3
 db_engine_version         = "15.5"
 
+# Take final backup before destroying a cluster (typically lab)
+skip_final_snapshot = true
+
+# Protect database from deletion
+db_deletion_protection = false
+
 # IAM Authentication
 aws_account_id = "123456789012"
 db_iam_user    = "iam_db_user"
+
+# Environment: dev, staging, prod
+environment = "Lab"
