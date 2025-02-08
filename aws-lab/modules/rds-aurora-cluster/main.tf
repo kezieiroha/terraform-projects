@@ -49,20 +49,13 @@ resource "aws_db_subnet_group" "rds_subnet_group" {
 # ------------------------------------------------------------------------------
 # Parameter Group for Aurora PostgreSQL
 # ------------------------------------------------------------------------------
-resource "aws_db_parameter_group" "aurora_pg" {
+
+resource "aws_rds_cluster_parameter_group" "aurora_pg" {
   count       = var.deploy_aurora ? 1 : 0
   name        = var.db_parameter_group_name_aurora
   family      = var.db_parameter_group_family_aurora
   description = "Best practices parameter group for Aurora PostgreSQL"
 
-  parameter {
-    name  = "rds.force_ssl"
-    value = "1"
-  }
-  parameter {
-    name  = "password_encryption"
-    value = "scram-sha-256"
-  }
   parameter {
     name  = "log_connections"
     value = "1"
@@ -80,27 +73,31 @@ resource "aws_db_parameter_group" "aurora_pg" {
     value = "250"
   }
   parameter {
-    name  = "shared_buffers"
-    value = tostring(local.shared_buffers)
+    name         = "shared_buffers"
+    value        = tostring(local.shared_buffers)
+    apply_method = "pending-reboot" # Static parameter
   }
   parameter {
-    name  = "effective_cache_size"
-    value = tostring(local.effective_cache_size)
+    name         = "effective_cache_size"
+    value        = tostring(local.effective_cache_size)
+    apply_method = "pending-reboot" # Static parameter
   }
   parameter {
-    name  = "work_mem"
-    value = tostring(local.work_mem)
+    name         = "work_mem"
+    value        = tostring(local.work_mem)
+    apply_method = "immediate" # Dynamic parameter
   }
   parameter {
-    name  = "random_page_cost"
-    value = tostring(local.random_page_cost)
+    name         = "random_page_cost"
+    value        = tostring(local.random_page_cost)
+    apply_method = "immediate" # Dynamic parameter
   }
 }
 
 # ------------------------------------------------------------------------------
 # Parameter Group for RDS PostgreSQL
 # ------------------------------------------------------------------------------
-resource "aws_db_parameter_group" "rds_pg" {
+resource "aws_rds_cluster_parameter_group" "rds_pg" {
   count       = var.deploy_aurora ? 0 : 1
   name        = var.db_parameter_group_name_rds
   family      = var.db_parameter_group_family_rds
@@ -167,6 +164,7 @@ resource "aws_db_parameter_group" "rds_pg" {
 # ------------------------------------------------------------------------------
 # Deploy Aurora Cluster (If `deploy_aurora` is True)
 # ------------------------------------------------------------------------------
+/*
 resource "aws_rds_cluster" "aurora" {
   count                               = var.deploy_aurora ? 1 : 0
   cluster_identifier                  = var.db_cluster_identifier
@@ -187,6 +185,32 @@ resource "aws_rds_cluster" "aurora" {
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = aws_db_parameter_group.aurora_pg[0].name
 }
+*/
+
+resource "aws_rds_cluster" "aurora" {
+  count                               = var.deploy_aurora ? 1 : 0
+  cluster_identifier                  = var.db_cluster_identifier
+  engine                              = var.db_engine
+  engine_version                      = var.db_engine_version
+  database_name                       = var.database_name
+  master_username                     = var.db_master_username
+  master_password                     = var.db_master_password
+  storage_encrypted                   = true
+  deletion_protection                 = var.db_deletion_protection
+  iam_database_authentication_enabled = true
+
+  backup_retention_period      = var.db_backup_retention_period
+  preferred_backup_window      = var.db_preferred_backup_window
+  preferred_maintenance_window = var.db_preferred_maintenance_window
+
+  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
+  vpc_security_group_ids          = [var.vpc_details.security_groups.database]
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg[0].name
+
+  # Ensure the parameter group is created before the cluster
+  depends_on = [aws_rds_cluster_parameter_group.aurora_pg]
+}
+
 
 # ------------------------------------------------------------------------------
 # Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_cluster"`)
@@ -207,7 +231,7 @@ resource "aws_rds_cluster" "multi_az_cluster" {
 
   db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
-  db_cluster_parameter_group_name = aws_db_parameter_group.rds_pg[0].name
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pg[0].name
 }
 
 # ------------------------------------------------------------------------------
