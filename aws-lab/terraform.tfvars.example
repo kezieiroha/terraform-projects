@@ -34,7 +34,6 @@ rds_deployment_type = "multi_az_cluster"
 # Deploy Aurora Postgres Cluster
 deploy_aurora             = true
 database_name             = "auroradb"
-db_password               = "some_password"
 db_master_password        = "some_password"
 db_instance_class         = "db.t3.medium"
 db_cluster_instance_count = 3
