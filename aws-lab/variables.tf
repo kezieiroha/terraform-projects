@@ -127,3 +127,9 @@ variable "rds_deployment_type" {
   type        = string
   default     = "aurora"
 }
+
+variable "skip_final_snapshot" {
+  description = "Skip final snapshot before deleting the database"
+  type        = bool
+  default     = false
+}

@@ -186,3 +186,9 @@ variable "db_parameter_group_name_rds" {
   type        = string
   default     = "rds-pg-parameter-group"
 }
+
+variable "skip_final_snapshot" {
+  description = "Skip final snapshot before deleting the database"
+  type        = bool
+  default     = false
+}

@@ -164,29 +164,6 @@ resource "aws_rds_cluster_parameter_group" "rds_pg" {
 # ------------------------------------------------------------------------------
 # Deploy Aurora Cluster (If `deploy_aurora` is True)
 # ------------------------------------------------------------------------------
-/*
-resource "aws_rds_cluster" "aurora" {
-  count                               = var.deploy_aurora ? 1 : 0
-  cluster_identifier                  = var.db_cluster_identifier
-  engine                              = var.db_engine
-  engine_version                      = var.db_engine_version
-  database_name                       = var.database_name
-  master_username                     = var.db_master_username
-  master_password                     = var.db_master_password
-  storage_encrypted                   = true
-  deletion_protection                 = var.db_deletion_protection
-  iam_database_authentication_enabled = true
-
-  backup_retention_period      = var.db_backup_retention_period
-  preferred_backup_window      = var.db_preferred_backup_window
-  preferred_maintenance_window = var.db_preferred_maintenance_window
-
-  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids          = [var.vpc_details.security_groups.database]
-  db_cluster_parameter_group_name = aws_db_parameter_group.aurora_pg[0].name
-}
-*/
-
 resource "aws_rds_cluster" "aurora" {
   count                               = var.deploy_aurora ? 1 : 0
   cluster_identifier                  = var.db_cluster_identifier
@@ -206,6 +183,9 @@ resource "aws_rds_cluster" "aurora" {
   db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg[0].name
+  skip_final_snapshot             = var.skip_final_snapshot
+  final_snapshot_identifier       = "${var.db_cluster_identifier}-final-snapshot"
+
 
   # Ensure the parameter group is created before the cluster
   depends_on = [aws_rds_cluster_parameter_group.aurora_pg]
