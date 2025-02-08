@@ -189,8 +189,8 @@ resource "aws_rds_cluster" "aurora" {
 
   # Ensure the parameter group is created before the cluster
   depends_on = [aws_rds_cluster_parameter_group.aurora_pg]
-}
 
+}
 
 # ------------------------------------------------------------------------------
 # Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_cluster"`)

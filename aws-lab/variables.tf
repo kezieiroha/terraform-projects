@@ -133,3 +133,10 @@ variable "skip_final_snapshot" {
   type        = bool
   default     = false
 }
+
+variable "db_deletion_protection" {
+  description = "Enable deletion protection"
+  type        = bool
+  default     = true
+}
+
