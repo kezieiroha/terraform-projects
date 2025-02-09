@@ -189,7 +189,6 @@ variable "db_parameter_group_name_rds" {
 variable "skip_final_snapshot" {
   description = "Skip final snapshot before deleting the database"
   type        = bool
-  default     = false
 }
 
 variable "environment" {
