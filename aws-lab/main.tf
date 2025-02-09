@@ -29,11 +29,12 @@ module "ec2" {
 }
 
 module "bastion" {
-  source      = "./modules/bastion"
-  vpc_details = module.vpc.vpc_details
-  key_name    = var.key_name
-  enable_ssh  = true
-  enable_ssm  = true
+  source           = "./modules/bastion"
+  vpc_details      = module.vpc.vpc_details
+  key_name         = var.key_name
+  enable_ssh       = true
+  enable_ssm       = true
+  private_key_path = var.private_key_path
 }
 
 module "rds-aurora-cluster" {
