@@ -24,6 +24,15 @@ ec2_az_overrides = {
 # Flag to deploy identical EC2 set in alternate AZ
 deploy_alternate_az_set = false
 
+# Environment: dev, staging, prod
+environment = "Lab"
+
+# Take final backup before destroying a cluster (typically lab)
+skip_final_snapshot = true
+
+# Protect database from deletion
+db_deletion_protection = false
+
 # Deploy Aurora 
 deploy_aurora = false
 
@@ -39,15 +48,8 @@ db_instance_class         = "db.t3.medium"
 db_cluster_instance_count = 3
 db_engine_version         = "15.5"
 
-# Take final backup before destroying a cluster (typically lab)
-skip_final_snapshot = true
-
-# Protect database from deletion
-db_deletion_protection = false
-
 # IAM Authentication
 aws_account_id = "123456789012"
 db_iam_user    = "iam_db_user"
 
-# Environment: dev, staging, prod
-environment = "Lab"
+
