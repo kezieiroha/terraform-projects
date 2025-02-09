@@ -84,6 +84,11 @@ variable "database_name" {
   type        = string
 }
 
+variable "db_engine" {
+  description = "Database engine"
+  type        = string
+}
+
 variable "db_engine_version" {
   description = "Engine version of the database"
   type        = string
@@ -105,12 +110,6 @@ variable "db_iam_user" {
   type        = string
 }
 
-variable "deploy_aurora" {
-  description = "Set to true to deploy Aurora, false to deploy RDS"
-  type        = bool
-  default     = true
-}
-
 variable "rds_deployment_type" {
   description = "Deployment type: 'aurora', 'multi_az_cluster', 'multi_az_instance', or 'single_instance'"
   type        = string
@@ -129,4 +128,22 @@ variable "db_deletion_protection" {
 variable "environment" {
   description = "Deployment environment (e.g., dev, staging, prod)"
   type        = string
+}
+
+variable "db_allocated_storage" {
+  description = "Allocated storage for RDS instance"
+  type        = number
+  default     = 50
+}
+
+variable "db_max_allocated_storage" {
+  description = "Maximum allocated storage for RDS instance"
+  type        = number
+  default     = 50
+}
+
+variable "db_cluster_instance_class" {
+  description = "Instance class for Multi-AZ RDS Cluster"
+  type        = string
+  default     = "db.c6gd.medium"
 }

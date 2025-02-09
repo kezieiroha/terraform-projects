@@ -49,7 +49,6 @@ variable "db_port" {
 variable "db_engine" {
   description = "Database engine"
   type        = string
-  default     = "aurora-postgresql"
 }
 
 variable "db_engine_version" {
@@ -108,13 +107,13 @@ variable "db_storage_encrypted" {
 variable "db_allocated_storage" {
   description = "Allocated storage for RDS instance"
   type        = number
-  default     = 100
+  default     = 50
 }
 
 variable "db_max_allocated_storage" {
   description = "Maximum allocated storage for RDS instance"
   type        = number
-  default     = 1000
+  default     = 50
 }
 
 variable "db_multi_az" {
@@ -194,4 +193,9 @@ variable "environment" {
   description = "Deployment environment (e.g., dev, staging, prod)"
   type        = string
   default     = "Lab"
+}
+
+variable "db_cluster_instance_class" {
+  description = "Instance class for Multi-AZ RDS Cluster"
+  type        = string
 }
