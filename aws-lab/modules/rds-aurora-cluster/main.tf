@@ -97,7 +97,7 @@ resource "aws_rds_cluster_parameter_group" "aurora_pg" {
 # ------------------------------------------------------------------------------
 # Parameter Group for RDS PostgreSQL
 # ------------------------------------------------------------------------------
-resource "aws_rds_cluster_parameter_group" "rds_pg" {
+resource "aws_db_parameter_group" "rds_pg" {
   count       = var.deploy_aurora ? 0 : 1
   name        = var.db_parameter_group_name_rds
   family      = var.db_parameter_group_family_rds
@@ -107,57 +107,87 @@ resource "aws_rds_cluster_parameter_group" "rds_pg" {
     name  = "rds.force_ssl"
     value = "1"
   }
+
   parameter {
     name  = "password_encryption"
     value = "scram-sha-256"
   }
+
   parameter {
     name  = "log_connections"
     value = "1"
   }
+
   parameter {
     name  = "log_disconnections"
     value = "1"
   }
+
   parameter {
     name  = "log_statement"
     value = "ddl"
   }
+
   parameter {
     name  = "log_min_duration_statement"
     value = "250"
   }
+
+  # Static Parameters (pending-reboot)
   parameter {
-    name  = "shared_buffers"
-    value = tostring(local.shared_buffers)
+    name         = "shared_buffers"
+    value        = tostring(local.shared_buffers)
+    apply_method = "pending-reboot"
   }
+
   parameter {
-    name  = "effective_cache_size"
-    value = tostring(local.effective_cache_size)
+    name         = "effective_cache_size"
+    value        = tostring(local.effective_cache_size)
+    apply_method = "pending-reboot"
   }
+
+  # Dynamic Parameters  
   parameter {
-    name  = "work_mem"
-    value = tostring(local.work_mem)
+    name         = "work_mem"
+    value        = tostring(local.work_mem)
+    apply_method = "immediate"
   }
+
   parameter {
-    name  = "random_page_cost"
-    value = tostring(local.random_page_cost)
+    name         = "random_page_cost"
+    value        = tostring(local.random_page_cost)
+    apply_method = "immediate"
   }
+
+  # Other Parameters (Static)
   parameter {
-    name  = "wal_level"
-    value = "replica"
+    name         = "wal_level"
+    value        = "replica"
+    apply_method = "pending-reboot"
   }
+
   parameter {
-    name  = "max_wal_senders"
-    value = "10"
+    name         = "wal_level"
+    value        = "replica"
+    apply_method = "pending-reboot"
   }
+
   parameter {
-    name  = "checkpoint_completion_target"
-    value = "0.9"
+    name         = "max_wal_senders"
+    value        = "10"
+    apply_method = "pending-reboot"
   }
+
   parameter {
-    name  = "wal_compression"
-    value = "on"
+    name         = "checkpoint_completion_target"
+    value        = "0.9"
+    apply_method = "pending-reboot"
+  }
+
+  parameter {
+    name         = "wal_compression"
+    value        = "on"
+    apply_method = "pending-reboot"
   }
 }
 
@@ -181,7 +211,7 @@ resource "aws_rds_cluster" "aurora" {
   preferred_backup_window      = var.db_preferred_backup_window
   preferred_maintenance_window = var.db_preferred_maintenance_window
 
-  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
+  #db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg[0].name
   skip_final_snapshot             = var.skip_final_snapshot
@@ -233,10 +263,12 @@ resource "aws_rds_cluster" "multi_az_cluster" {
   preferred_backup_window      = var.db_preferred_backup_window
   preferred_maintenance_window = var.db_preferred_maintenance_window
 
-  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids          = [var.vpc_details.security_groups.database]
-  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pg[0].name
-  deletion_protection             = var.db_deletion_protection
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
+  vpc_security_group_ids = [var.vpc_details.security_groups.database]
+  #db_cluster_parameter_group_name = aws_db_parameter_group.rds_pg[0].name
+  deletion_protection       = var.db_deletion_protection
+  skip_final_snapshot       = var.skip_final_snapshot
+  final_snapshot_identifier = "${var.db_cluster_identifier}-final-snapshot"
 
   tags = {
     Name        = "${var.db_cluster_identifier}-instance-${count.index}"
@@ -259,10 +291,12 @@ resource "aws_db_instance" "multi_az_instance" {
   multi_az              = true
 
   backup_retention_period = var.db_backup_retention_period
-  deletion_protection     = var.db_deletion_protection
 
-  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids = [var.vpc_details.security_groups.database]
+  db_subnet_group_name      = aws_db_subnet_group.rds_subnet_group.name
+  vpc_security_group_ids    = [var.vpc_details.security_groups.database]
+  deletion_protection       = var.db_deletion_protection
+  skip_final_snapshot       = var.skip_final_snapshot
+  final_snapshot_identifier = "${var.db_cluster_identifier}-final-snapshot"
 
   tags = {
     Name        = "${var.db_cluster_identifier}-instance-${count.index}"
