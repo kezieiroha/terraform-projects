@@ -143,7 +143,6 @@ variable "deploy_aurora" {
 variable "rds_deployment_type" {
   description = "Deployment type: 'aurora', 'multi_az_cluster', 'multi_az_instance', or 'single_instance'"
   type        = string
-  default     = "aurora"
   validation {
     condition     = contains(["aurora", "multi_az_cluster", "multi_az_instance", "single_instance"], var.rds_deployment_type)
     error_message = "Valid options: 'aurora', 'multi_az_cluster', 'multi_az_instance', 'single_instance'."

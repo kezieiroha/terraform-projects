@@ -114,7 +114,6 @@ variable "deploy_aurora" {
 variable "rds_deployment_type" {
   description = "Deployment type: 'aurora', 'multi_az_cluster', 'multi_az_instance', or 'single_instance'"
   type        = string
-  default     = "aurora"
 }
 
 variable "skip_final_snapshot" {
