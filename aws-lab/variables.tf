@@ -29,11 +29,6 @@ variable "vpc_cidr_block" {
   type        = string
 }
 
-variable "az_count" {
-  description = "Number of Availability Zones to use"
-  type        = number
-}
-
 variable "availability_zones" {
   description = "List of private subnet CIDR blocks"
   type        = list(string)
