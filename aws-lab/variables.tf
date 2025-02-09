@@ -130,3 +130,15 @@ variable "environment" {
   description = "Deployment environment (e.g., dev, staging, prod)"
   type        = string
 }
+
+variable "enable_ssh" {
+  description = "Enable SSH access to Bastion"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ssm" {
+  description = "Enable AWS SSM Session Manager"
+  type        = bool
+  default     = true
+}
