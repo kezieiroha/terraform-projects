@@ -7,7 +7,7 @@ This repository contains my personal Terraform projects and infrastructure autom
 ## **Project Structure**
 Each directory in this repository represents a separate Terraform lab or module.
 
-### **1. AWS-Lab - WIP**
+### **1. AWS-Lab -> Work In Progress**
 - Deploy AWS 3 tier architecture with dedicated vpc and select cidr range, db & app private tier, public web tier, and bastion public subnet across single/multi-region/az, with load balancing and auto scaling, observability
 - Deploy flavours of aws rds/aurora database configurations that demonstrate maa best practise
 
