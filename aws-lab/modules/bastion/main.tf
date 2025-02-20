@@ -53,7 +53,8 @@ resource "aws_instance" "bastion" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("~/.ssh/my-key.pem")
+    #private_key = file("~/.ssh/my-key.pem")
+    private_key = var.private_key_path
     host        = self.public_ip
   }
 
