@@ -84,6 +84,11 @@ variable "database_name" {
   type        = string
 }
 
+variable "db_engine" {
+  description = "Database engine"
+  type        = string
+}
+
 variable "db_engine_version" {
   description = "Engine version of the database"
   type        = string
@@ -103,12 +108,6 @@ variable "iam_role_name" {
 variable "db_iam_user" {
   description = "IAM User for Aurora authentication"
   type        = string
-}
-
-variable "deploy_aurora" {
-  description = "Set to true to deploy Aurora, false to deploy RDS"
-  type        = bool
-  default     = true
 }
 
 variable "rds_deployment_type" {
@@ -131,6 +130,23 @@ variable "environment" {
   type        = string
 }
 
+variable "db_allocated_storage" {
+  description = "Allocated storage for RDS instance"
+  type        = number
+  default     = 50
+}
+
+variable "db_max_allocated_storage" {
+  description = "Maximum allocated storage for RDS instance"
+  type        = number
+  default     = 50
+}
+
+variable "db_cluster_instance_class" {
+  description = "Instance class for Multi-AZ RDS Cluster"
+  type        = string
+  default     = "db.c6gd.medium"
+=======
 variable "enable_ssh" {
   description = "Enable SSH access to Bastion"
   type        = bool

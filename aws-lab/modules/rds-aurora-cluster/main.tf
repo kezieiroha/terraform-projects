@@ -31,7 +31,7 @@ locals {
   work_mem             = floor(local.total_memory_mb / (var.max_connections / 4)) # Divide by connections
 
   # Aurora vs. RDS Specific Values
-  random_page_cost = var.deploy_aurora ? 1.1 : 2.0
+  random_page_cost = var.db_engine == "aurora-postgresql" ? 1.1 : 2.0
 }
 
 # ------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ resource "aws_db_subnet_group" "rds_subnet_group" {
 # ------------------------------------------------------------------------------
 
 resource "aws_rds_cluster_parameter_group" "aurora_pg" {
-  count       = var.deploy_aurora ? 1 : 0
+  count       = var.db_engine == "aurora-postgresql" ? 1 : 0
   name        = var.db_parameter_group_name_aurora
   family      = var.db_parameter_group_family_aurora
   description = "Best practices parameter group for Aurora PostgreSQL"
@@ -97,105 +97,55 @@ resource "aws_rds_cluster_parameter_group" "aurora_pg" {
 # ------------------------------------------------------------------------------
 # Parameter Group for RDS PostgreSQL
 # ------------------------------------------------------------------------------
-resource "aws_db_parameter_group" "rds_pg" {
-  count       = var.deploy_aurora ? 0 : 1
+resource "aws_rds_cluster_parameter_group" "rds_pg" {
+  count       = var.db_engine != "aurora-postgresql" ? 1 : 0
   name        = var.db_parameter_group_name_rds
   family      = var.db_parameter_group_family_rds
   description = "Best practices parameter group for RDS PostgreSQL"
 
   parameter {
-    name  = "rds.force_ssl"
-    value = "1"
-  }
-
-  parameter {
-    name  = "password_encryption"
-    value = "scram-sha-256"
-  }
-
-  parameter {
     name  = "log_connections"
     value = "1"
   }
-
   parameter {
     name  = "log_disconnections"
     value = "1"
   }
-
   parameter {
     name  = "log_statement"
     value = "ddl"
   }
-
   parameter {
     name  = "log_min_duration_statement"
     value = "250"
   }
-
-  # Static Parameters (pending-reboot)
   parameter {
     name         = "shared_buffers"
     value        = tostring(local.shared_buffers)
-    apply_method = "pending-reboot"
+    apply_method = "pending-reboot" # Static parameter
   }
-
   parameter {
     name         = "effective_cache_size"
     value        = tostring(local.effective_cache_size)
-    apply_method = "pending-reboot"
+    apply_method = "pending-reboot" # Static parameter
   }
-
-  # Dynamic Parameters  
   parameter {
     name         = "work_mem"
     value        = tostring(local.work_mem)
-    apply_method = "immediate"
+    apply_method = "immediate" # Dynamic parameter
   }
-
   parameter {
     name         = "random_page_cost"
     value        = tostring(local.random_page_cost)
-    apply_method = "immediate"
-  }
-
-  # Other Parameters (Static)
-  parameter {
-    name         = "wal_level"
-    value        = "replica"
-    apply_method = "pending-reboot"
-  }
-
-  parameter {
-    name         = "wal_level"
-    value        = "replica"
-    apply_method = "pending-reboot"
-  }
-
-  parameter {
-    name         = "max_wal_senders"
-    value        = "10"
-    apply_method = "pending-reboot"
-  }
-
-  parameter {
-    name         = "checkpoint_completion_target"
-    value        = "0.9"
-    apply_method = "pending-reboot"
-  }
-
-  parameter {
-    name         = "wal_compression"
-    value        = "on"
-    apply_method = "pending-reboot"
+    apply_method = "immediate" # Dynamic parameter
   }
 }
 
 # ------------------------------------------------------------------------------
-# Deploy Aurora Cluster (If `deploy_aurora` is True)
+# Deploy Aurora Cluster  
 # ------------------------------------------------------------------------------
 resource "aws_rds_cluster" "aurora" {
-  count                               = var.deploy_aurora ? 1 : 0
+  count                               = var.db_engine == "aurora-postgresql" ? 1 : 0
   cluster_identifier                  = var.db_cluster_identifier
   engine                              = var.db_engine
   engine_version                      = var.db_engine_version
@@ -211,7 +161,7 @@ resource "aws_rds_cluster" "aurora" {
   preferred_backup_window      = var.db_preferred_backup_window
   preferred_maintenance_window = var.db_preferred_maintenance_window
 
-  #db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
+  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg[0].name
   skip_final_snapshot             = var.skip_final_snapshot
@@ -231,7 +181,7 @@ resource "aws_rds_cluster" "aurora" {
 # Deploy Aurora Cluster Instances
 # ------------------------------------------------------------------------------
 resource "aws_rds_cluster_instance" "aurora_instances" {
-  count                = var.deploy_aurora ? var.db_cluster_instance_count : 0
+  count                = var.db_engine == "aurora-postgresql" ? var.db_cluster_instance_count : 0
   identifier           = "${var.db_cluster_identifier}-instance-${count.index}"
   cluster_identifier   = aws_rds_cluster.aurora[0].id
   instance_class       = var.db_instance_class
@@ -250,25 +200,26 @@ resource "aws_rds_cluster_instance" "aurora_instances" {
 # Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_cluster"`)
 # ------------------------------------------------------------------------------
 resource "aws_rds_cluster" "multi_az_cluster" {
-  count              = var.deploy_aurora ? 0 : (var.rds_deployment_type == "multi_az_cluster" ? 1 : 0)
-  cluster_identifier = "${var.db_cluster_identifier}-multi-az"
-  engine             = var.db_engine
-  engine_version     = var.db_engine_version
-  database_name      = var.database_name
-  master_username    = var.db_master_username
-  master_password    = var.db_master_password
-  storage_encrypted  = true
-
+  count                        = var.db_engine != "aurora-postgresql" && var.rds_deployment_type == "multi_az_cluster" ? 1 : 0
+  cluster_identifier           = "${var.db_cluster_identifier}-multi-az"
+  engine                       = var.db_engine
+  engine_version               = var.db_engine_version
+  database_name                = var.database_name
+  master_username              = var.db_master_username
+  master_password              = var.db_master_password
+  allocated_storage            = var.db_allocated_storage
+  storage_encrypted            = true
+  db_cluster_instance_class    = var.db_cluster_instance_class
   backup_retention_period      = var.db_backup_retention_period
   preferred_backup_window      = var.db_preferred_backup_window
   preferred_maintenance_window = var.db_preferred_maintenance_window
 
-  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids = [var.vpc_details.security_groups.database]
-  #db_cluster_parameter_group_name = aws_db_parameter_group.rds_pg[0].name
-  deletion_protection       = var.db_deletion_protection
-  skip_final_snapshot       = var.skip_final_snapshot
-  final_snapshot_identifier = "${var.db_cluster_identifier}-final-snapshot"
+  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
+  vpc_security_group_ids          = [var.vpc_details.security_groups.database]
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pg[0].name
+  deletion_protection             = var.db_deletion_protection
+  skip_final_snapshot             = var.skip_final_snapshot
+  final_snapshot_identifier       = "${var.db_cluster_identifier}-final-snapshot"
 
   tags = {
     Name        = "${var.db_cluster_identifier}-instance-${count.index}"
@@ -280,7 +231,7 @@ resource "aws_rds_cluster" "multi_az_cluster" {
 # Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_instance"`)
 # ------------------------------------------------------------------------------
 resource "aws_db_instance" "multi_az_instance" {
-  count                 = var.deploy_aurora ? 0 : (var.rds_deployment_type == "multi_az_instance" ? 1 : 0)
+  count                 = var.db_engine != "aurora-postgresql" && var.rds_deployment_type == "multi_az_instance" ? 1 : 0
   identifier            = "${var.db_cluster_identifier}-multi-az-instance"
   engine                = var.db_engine
   engine_version        = var.db_engine_version
@@ -299,7 +250,7 @@ resource "aws_db_instance" "multi_az_instance" {
   final_snapshot_identifier = "${var.db_cluster_identifier}-final-snapshot"
 
   tags = {
-    Name        = "${var.db_cluster_identifier}-instance-${count.index}"
+    Name        = "${var.db_cluster_identifier}-multi-az-instance"
     Environment = var.environment
   }
 }
@@ -308,7 +259,7 @@ resource "aws_db_instance" "multi_az_instance" {
 # Deploy Single RDS Instance (if `rds_deployment_type == "single_instance"`)
 # ------------------------------------------------------------------------------
 resource "aws_db_instance" "single_instance" {
-  count                 = var.deploy_aurora ? 0 : (var.rds_deployment_type == "single_instance" ? 1 : 0)
+  count                 = var.db_engine != "aurora-postgresql" && var.rds_deployment_type == "single_instance" ? 1 : 0
   identifier            = "${var.db_cluster_identifier}-single-instance"
   engine                = var.db_engine
   engine_version        = var.db_engine_version
@@ -324,7 +275,7 @@ resource "aws_db_instance" "single_instance" {
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
 
   tags = {
-    Name        = "${var.db_cluster_identifier}-instance-${count.index}"
+    Name        = "${var.db_cluster_identifier}-single-instance"
     Environment = var.environment
   }
 }

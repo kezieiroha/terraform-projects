@@ -33,18 +33,18 @@ skip_final_snapshot = true
 # Protect database from deletion
 db_deletion_protection = false
 
-# Deploy Aurora 
-deploy_aurora = false
+# DB Engine: aurora-postgresql | postgres
+db_engine = "postgres"
 
-# Deploy RDS (only when deploy_aurora = false)
-# Supported options: aurora | multi_az_cluster | multi_az_instance | single_instance
+# aurora_postgresql option: aurora | postgres option: multi_az_cluster, multi_az_instance, single_instance
 rds_deployment_type = "multi_az_cluster"
 
 # Deploy Aurora Postgres Cluster
 deploy_aurora             = true
 database_name             = "auroradb"
 db_master_password        = "some_password"
-db_instance_class         = "db.t3.medium"
+db_instance_class         = "db.t3.medium" # for DB Instance deploy
+db_cluster_instance_class = "db.c6gd.medium" # for Cluster deploy
 db_cluster_instance_count = 3
 db_engine_version         = "15.5"
 
