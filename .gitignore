@@ -12,6 +12,7 @@
 *.tfplan
 .txt
 .out
+.backup
 
 # Ignore sensitive files (e.g., private keys)
 *.pem
