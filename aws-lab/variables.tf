@@ -146,4 +146,20 @@ variable "db_cluster_instance_class" {
   description = "Instance class for Multi-AZ RDS Cluster"
   type        = string
   default     = "db.c6gd.medium"
+=======
+variable "enable_ssh" {
+  description = "Enable SSH access to Bastion"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ssm" {
+  description = "Enable AWS SSM Session Manager"
+  type        = bool
+  default     = true
+}
+
+variable "private_key_path" {
+  description = "Path to the private key file"
+  type        = string
 }
