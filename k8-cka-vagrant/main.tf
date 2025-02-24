@@ -13,7 +13,7 @@ provider "local" {}
 resource "local_file" "vagrantfile" {
   filename = "${path.module}/Vagrantfile"
   content  = <<-EOT
-   # -*- mode: ruby -*-
+ # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
@@ -39,7 +39,7 @@ Vagrant.configure("2") do |config|
       sysctl --system
 
       echo "Installing dependencies..."
-      dnf install -y epel-release yum-utils
+      dnf install -y epel-release yum-utils wget
       dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
       dnf install -y containerd.io
 
@@ -81,19 +81,38 @@ EOF
       dnf install -y kubeadm kubelet kubectl
       systemctl enable --now kubelet
 
+      # Detect architecture and use appropriate CNI plugins
+      ARCH=$(uname -m)
+      echo "Detected architecture: $ARCH"
+
+      echo "Installing CNI plugins for $ARCH architecture..."
+      mkdir -p /opt/cni/bin
+      
+      if [ "$ARCH" == "aarch64" ] || [ "$ARCH" == "arm64" ]; then
+        # ARM64 architecture
+        wget https://github.com/containernetworking/plugins/releases/download/v1.3.0/cni-plugins-linux-arm64-v1.3.0.tgz -O cni-plugins.tgz
+      else
+        # Default to AMD64
+        wget https://github.com/containernetworking/plugins/releases/download/v1.3.0/cni-plugins-linux-amd64-v1.3.0.tgz -O cni-plugins.tgz
+      fi
+      
+      tar -C /opt/cni/bin -xzf cni-plugins.tgz
+      rm -f cni-plugins.tgz
+
       echo "Pulling Kubernetes images..."
       kubeadm config images pull
 
       echo "Initializing Kubernetes cluster..."
-      kubeadm init --apiserver-advertise-address=$(hostname -I | awk '{print $2}') --pod-network-cidr=192.168.0.0/16
+      # Use pod CIDR 10.244.0.0/16 which is the default for Flannel
+      kubeadm init --apiserver-advertise-address=$(hostname -I | awk '{print $2}') --pod-network-cidr=10.244.0.0/16
 
       echo "Setting up kubeconfig for vagrant user..."
       mkdir -p /home/vagrant/.kube
       cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
       chown -R vagrant:vagrant /home/vagrant/.kube
 
-      echo "Deploying Calico CNI..."
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
+      echo "Deploying Flannel CNI..."
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
       echo "Generating join command for worker nodes..."
       kubeadm token create --print-join-command > /vagrant/k8s-join-command.sh
@@ -127,7 +146,7 @@ EOF
         echo "Join command found, proceeding with setup..."
 
         echo "Setting up repositories..."
-        dnf install -y epel-release yum-utils
+        dnf install -y epel-release yum-utils wget
         dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
         
         echo "Adding Kubernetes repository..."
@@ -171,6 +190,24 @@ EOF
         echo "Disabling swap..."
         swapoff -a
         sed -i '/swap/d' /etc/fstab
+
+        # Detect architecture and use appropriate CNI plugins
+        ARCH=$(uname -m)
+        echo "Detected architecture: $ARCH"
+
+        echo "Installing CNI plugins for $ARCH architecture..."
+        mkdir -p /opt/cni/bin
+        
+        if [ "$ARCH" == "aarch64" ] || [ "$ARCH" == "arm64" ]; then
+          # ARM64 architecture
+          wget https://github.com/containernetworking/plugins/releases/download/v1.3.0/cni-plugins-linux-arm64-v1.3.0.tgz -O cni-plugins.tgz
+        else
+          # Default to AMD64
+          wget https://github.com/containernetworking/plugins/releases/download/v1.3.0/cni-plugins-linux-amd64-v1.3.0.tgz -O cni-plugins.tgz
+        fi
+        
+        tar -C /opt/cni/bin -xzf cni-plugins.tgz
+        rm -f cni-plugins.tgz
 
         echo "Installing Kubernetes components..."
         dnf install -y kubeadm kubelet kubectl

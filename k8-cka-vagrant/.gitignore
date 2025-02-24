@@ -17,3 +17,4 @@
 
 # Ignore DS Store (macbook)
 .DS_Store
+.vagrant
