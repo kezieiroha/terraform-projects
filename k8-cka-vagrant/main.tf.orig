@@ -1,0 +1,74 @@
+terraform {
+  required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = ">= 2.0"
+    }
+  }
+}
+
+provider "local" {}
+
+resource "local_file" "vagrantfile" {
+  filename = "${path.module}/Vagrantfile"
+  content  = <<-EOT
+    Vagrant.configure("2") do |config|
+      nodes = {
+        "k8s-master" => { cpus: 2, memory: 4096 },
+        "k8s-worker1" => { cpus: 2, memory: 4096 },
+        "k8s-worker2" => { cpus: 2, memory: 4096 }
+      }
+
+      nodes.each do |hostname, options|
+        config.vm.define hostname do |node|
+          node.vm.box = "almalinux/9"
+          node.vm.box_version = "9.5.20241203"
+          node.vm.hostname = hostname
+          node.vm.network "private_network", type: "dhcp"
+
+          node.vm.provider "vmware_desktop" do |vmware|
+            vmware.gui = true  # Ensures VMware Fusion UI shows the VM
+            vmware.vmx["memsize"] = options[:memory]
+            vmware.vmx["numvcpus"] = options[:cpus]
+          end
+
+          node.vm.provision "shell", inline: <<-SHELL
+            set -e  # Exit on any error
+            
+            # Enable EPEL for containerd
+            sudo dnf install -y epel-release
+            sudo dnf install -y containerd
+
+            # Configure containerd
+            sudo mkdir -p /etc/containerd
+            containerd config default | sudo tee /etc/containerd/config.toml
+            sudo systemctl restart containerd
+            sudo systemctl enable containerd
+
+            # Add Kubernetes repository
+            cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+            [kubernetes]
+            name=Kubernetes
+            baseurl=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/
+            enabled=1
+            gpgcheck=1
+            gpgkey=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/Release.key
+            EOF
+
+            # Install Kubernetes components
+            sudo dnf install -y kubelet kubeadm kubectl
+            sudo systemctl enable --now kubelet
+          SHELL
+        end
+      end
+    end
+  EOT
+}
+
+resource "null_resource" "run_vagrant_up" {
+  depends_on = [local_file.vagrantfile]
+
+  provisioner "local-exec" {
+    command = "vagrant up --provider=vmware_desktop"
+  }
+}
