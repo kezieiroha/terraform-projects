@@ -1,6 +1,6 @@
 # Kubernetes CKA Lab Environment
 
-A comprehensive local Kubernetes environment built with Vagrant and VMware for Certified Kubernetes Administrator (CKA) exam preparation.
+My local Kubernetes environment built with Vagrant and VMware for Certified Kubernetes Administrator (CKA) exam preparation.
 
 ## Overview
 
@@ -33,13 +33,15 @@ Clone this repository and navigate to the project directory:
 
 ```bash
 git clone <repository-url>
-cd kubernetes-cka-lab
+cd k8-cka-lab
 ```
 
 Start the Kubernetes cluster with VMware provider:
 
 ```bash
-vagrant up --provider=vmware_desktop
+terraform init
+terraform plan
+terraform apply --auto-approve
 ```
 
 Check the status of the Vagrant VMs:
@@ -63,6 +65,7 @@ The kubeconfig file is already set up for the `vagrant` user, so you can immedia
 When you're done, you can destroy the cluster:
 
 ```bash
+terraform destroy --auto-approve
 vagrant destroy -f
 ```
 
