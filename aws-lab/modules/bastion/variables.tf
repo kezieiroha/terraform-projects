@@ -47,6 +47,12 @@ variable "private_key_path" {
   type        = string
 }
 
+variable "iam_instance_profile" {
+  description = "IAM instance profile name for the bastion host"
+  type        = string
+  default     = ""
+}
+
 variable "db_endpoint" {
   description = "Database endpoint (provided after database creation)"
   type        = string

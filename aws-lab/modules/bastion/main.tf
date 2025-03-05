@@ -33,10 +33,10 @@ resource "aws_instance" "bastion" {
     Name = "EC2 Bastion"
   }
 
-  # Attach IAM Role if SSM is enabled
-  iam_instance_profile = var.enable_ssm ? aws_iam_instance_profile.ssm_profile[0].name : null
+  # Attach IAM Instance Profile if provided
+  iam_instance_profile = var.iam_instance_profile
 
-  # Upload basic setup script - only installs required packages
+  # Upload basic setup script
   provisioner "file" {
     source      = "${path.module}/setup-bastion.sh"
     destination = "/home/ec2-user/setup-bastion.sh"
@@ -64,88 +64,23 @@ resource "aws_instance" "bastion" {
     }
   }
 
-  # Enable SSM agent if SSM is enabled
+  # Enable SSM agent
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"
   }
 }
 
-# IAM Role for SSM if enabled
-resource "aws_iam_role" "ssm_role" {
-  count = var.enable_ssm ? 1 : 0
-  name  = "BastionSSMRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      },
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
-
-# Add policy for RDS IAM authentication
-resource "aws_iam_policy" "rds_connect_policy" {
-  name        = "BastionRDSConnectPolicy"
-  description = "Allow bastion host to connect to RDS using IAM authentication"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "rds-db:connect",
-          "ssm:GetParameter",
-          "ssm:PutParameter",
-          "rds:DescribeDBClusters",
-          "rds:DescribeDBInstances"
-        ],
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-# IAM Policy for SSM Session Manager
-resource "aws_iam_policy_attachment" "ssm_policy_attach" {
-  count      = var.enable_ssm ? 1 : 0
-  name       = "BastionSSMPolicyAttachment"
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  roles      = [aws_iam_role.ssm_role[0].name]
-}
-
-# Attach RDS connect policy
-resource "aws_iam_policy_attachment" "rds_policy_attach" {
-  count      = var.enable_ssm ? 1 : 0
-  name       = "BastionRDSPolicyAttachment"
-  policy_arn = aws_iam_policy.rds_connect_policy.arn
-  roles      = [aws_iam_role.ssm_role[0].name]
-}
-
-# IAM Instance Profile
-resource "aws_iam_instance_profile" "ssm_profile" {
-  count = var.enable_ssm ? 1 : 0
-  name  = "BastionSSMProfile"
-  role  = aws_iam_role.ssm_role[0].name
-}
-
-# This resource will be created after the database is available
+# Configure database access on the bastion after the database is available
 resource "null_resource" "configure_database_access" {
-  # Only run this after the database endpoint is available
-  # You would need to pass this as a variable from the parent module
+  # Only run this if db_endpoint is provided
+  count = var.db_endpoint != "" ? 1 : 0
+
   triggers = {
     db_endpoint = var.db_endpoint
   }
 
-  # Only run if db_endpoint is provided
-  count = var.db_endpoint != "" ? 1 : 0
-
-  # Now configure the database access
+  # Configure the database access
   provisioner "file" {
     content = templatefile("${path.module}/configure-db-access.sh.tpl", {
       db_endpoint = var.db_endpoint,

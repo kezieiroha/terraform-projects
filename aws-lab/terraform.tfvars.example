@@ -16,17 +16,17 @@ private_subnets    = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 public_subnets     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
+# EC2 Tier Deployment Options
+deploy_ec2_tiers = true         # Master flag to deploy EC2 tiers
+deploy_web_tier = true          # Deploy Web Tier EC2 instances
+deploy_app_tier = true          # Deploy App Tier EC2 instances
+deploy_alternate_az_set = false # Deploy HA instances across AZs
+
 # Optional AZ override for EC2 instances
 ec2_az_overrides = {
-  web     = "us-east-1a"
-  app     = "us-east-1b"
-  bastion = "us-east-1c"
+  web = "us-east-1a"
+  app = "us-east-1b"
 }
-
-# EC2 Tier Deployment Options
-deploy_web_tier = true        # Set to true to deploy Web Tier EC2 instances
-deploy_app_tier = true        # Set to true to deploy App Tier EC2 instances
-deploy_alternate_az_set = false # Set to true for HA deployment across AZs
 
 # EC2 Instance Types
 instance_types = {

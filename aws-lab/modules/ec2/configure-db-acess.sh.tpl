@@ -23,15 +23,25 @@ TOKEN=$(aws rds generate-db-auth-token \
 # Create a connection script for convenience
 cat > /home/ec2-user/connect-db.sh << EOF
 #!/bin/bash
-TOKEN=\$(aws rds generate-db-auth-token \\
-  --hostname $DB_ENDPOINT \\
-  --port 5432 \\
-  --region $REGION \\
-  --username iam_db_user)
+# Script to connect to PostgreSQL using IAM authentication
 
-PGPASSWORD=\$TOKEN psql "host=$DB_ENDPOINT user=iam_db_user dbname=postgres sslmode=require"
+DB_ENDPOINT="$DB_ENDPOINT"
+REGION="$REGION"
+USER="iam_db_user"
+DATABASE="postgres"
+
+echo "Generating authentication token..."
+TOKEN=\$(aws rds generate-db-auth-token \\
+  --hostname \$DB_ENDPOINT \\
+  --port 5432 \\
+  --region \$REGION \\
+  --username \$USER)
+
+echo "Connecting to PostgreSQL database..."
+PGPASSWORD=\$TOKEN psql "host=\$DB_ENDPOINT user=\$USER dbname=\$DATABASE sslmode=require"
 EOF
 
 chmod +x /home/ec2-user/connect-db.sh
 
-echo "Database access configured. You can connect using: /home/ec2-user/connect-db.sh"
+echo "Database access configuration complete."
+echo "Use /home/ec2-user/connect-db.sh to connect to the database via IAM authentication."

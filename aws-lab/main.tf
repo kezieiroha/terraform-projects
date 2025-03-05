@@ -22,7 +22,23 @@ module "iam" {
   enable_bastion_iam    = true
 }
 
+# Bastion is always deployed
+module "bastion" {
+  source               = "./modules/bastion"
+  vpc_details          = module.vpc.vpc_details
+  key_name             = var.key_name
+  enable_ssh           = var.enable_ssh
+  enable_ssm           = var.enable_ssm
+  private_key_path     = var.private_key_path
+  instance_type        = var.instance_types.bastion
+  iam_instance_profile = module.iam.bastion_instance_profile_name
+  aws_region           = var.aws_region
+  db_endpoint          = module.rds-aurora-cluster.db_endpoint
+}
+
+# EC2 tiers are optional based on flags
 module "ec2" {
+  count                   = var.deploy_ec2_tiers ? 1 : 0
   source                  = "./modules/ec2"
   vpc_details             = module.vpc.vpc_details
   key_name                = var.key_name
@@ -30,17 +46,10 @@ module "ec2" {
   deploy_web_tier         = var.deploy_web_tier
   deploy_app_tier         = var.deploy_app_tier
   deploy_alternate_az_set = var.deploy_alternate_az_set
-  private_key_path        = var.private_key_path
-  enable_ssh              = var.enable_ssh
-  enable_ssm              = var.enable_ssm
-  instance_types          = var.instance_types
-  aws_region              = var.aws_region
-
-  # Pass IAM instance profile from IAM module
-  iam_instance_profile = module.iam.bastion_instance_profile_name
-
-  # Pass database endpoint to the EC2 module after the database is created
-  db_endpoint = module.rds-aurora-cluster.db_endpoint
+  instance_types = {
+    web = var.instance_types.web
+    app = var.instance_types.app
+  }
 }
 
 module "rds-aurora-cluster" {

@@ -54,12 +54,18 @@ variable "public_subnets" {
   }
 }
 
+# EC2 Web/App Tier Variables
+variable "deploy_ec2_tiers" {
+  description = "Master flag to deploy EC2 web and app tiers"
+  type        = bool
+  default     = false
+}
+
 variable "ec2_az_overrides" {
-  description = "Optional AZ override for each EC2 instance (web, app, bastion)"
+  description = "Optional AZ override for each EC2 instance (web, app)"
   type = object({
-    web     = optional(string)
-    app     = optional(string)
-    bastion = optional(string)
+    web = optional(string)
+    app = optional(string)
   })
   default = {}
 }
@@ -67,13 +73,13 @@ variable "ec2_az_overrides" {
 variable "deploy_web_tier" {
   description = "Flag to deploy web tier EC2 instances"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "deploy_app_tier" {
   description = "Flag to deploy app tier EC2 instances"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "deploy_alternate_az_set" {
@@ -96,6 +102,7 @@ variable "instance_types" {
   }
 }
 
+# Database Variables
 variable "db_master_password" {
   description = "Master password of the database"
   type        = string
@@ -175,6 +182,7 @@ variable "db_cluster_instance_class" {
   default     = "db.c6gd.medium"
 }
 
+# Bastion Variables
 variable "enable_ssh" {
   description = "Enable SSH access to Bastion"
   type        = bool
