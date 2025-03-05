@@ -26,9 +26,9 @@ locals {
   total_memory_mb = lookup(local.instance_ram, var.db_instance_class, 4096) # Default to 4GB if unknown
 
   # Derived PostgreSQL memory settings
-  shared_buffers       = floor(local.total_memory_mb * 0.25)                      # 25% of total memory
-  effective_cache_size = floor(local.total_memory_mb * 0.5)                       # 50% of total memory
-  work_mem             = floor(local.total_memory_mb / (var.max_connections / 4)) # Divide by connections
+  shared_buffers       = floor(local.total_memory_mb * 0.25)                               # 25% of total memory
+  effective_cache_size = floor(local.total_memory_mb * 0.5)                                # 50% of total memory
+  work_mem             = max(64, floor(local.total_memory_mb / (var.max_connections / 4))) # Divide by connections
 
   # Aurora vs. RDS Specific Values
   random_page_cost = var.db_engine == "aurora-postgresql" ? 1.1 : 2.0
@@ -217,6 +217,9 @@ resource "aws_db_instance" "multi_az_instance" {
   deletion_protection       = var.db_deletion_protection
   skip_final_snapshot       = var.skip_final_snapshot
   final_snapshot_identifier = "${var.db_cluster_identifier}-final-snapshot"
+
+  username = var.db_master_username
+  password = var.db_master_password
 
   tags = {
     Name        = "${var.db_cluster_identifier}-multi-az-instance"

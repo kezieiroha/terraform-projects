@@ -61,11 +61,10 @@ db_master_password            = "yourSecurePassword123!" # Change in real deploy
 db_instance_class             = "db.t3.micro"            # for DB Instance deploy
 db_cluster_instance_class     = "db.c6gd.medium"         # for Cluster deploy
 db_cluster_instance_count     = 1
-db_engine_version             = "15.5"
-db_parameter_group_family_rds = "postgres15" # postgres16, postgres15, postgres14
+db_engine_version             = "16.3"       # aws rds describe-db-engine-versions --engine postgres --query "DBEngineVersions[].EngineVersion"
+db_parameter_group_family_rds = "postgres16" # postgres16, postgres15, postgres14, postgres13, postgres12
 db_allocated_storage          = 50
 db_max_allocated_storage      = 50
 
 # IAM Authentication
 db_iam_user = "iam_db_user"
-
