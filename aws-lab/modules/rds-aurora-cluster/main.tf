@@ -197,37 +197,6 @@ resource "aws_rds_cluster_instance" "aurora_instances" {
 }
 
 # ------------------------------------------------------------------------------
-# Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_cluster"`)
-# ------------------------------------------------------------------------------
-resource "aws_rds_cluster" "multi_az_cluster" {
-  count                        = var.db_engine != "aurora-postgresql" && var.rds_deployment_type == "multi_az_cluster" ? 1 : 0
-  cluster_identifier           = "${var.db_cluster_identifier}-multi-az"
-  engine                       = var.db_engine
-  engine_version               = var.db_engine_version
-  database_name                = var.database_name
-  master_username              = var.db_master_username
-  master_password              = var.db_master_password
-  allocated_storage            = var.db_allocated_storage
-  storage_encrypted            = true
-  db_cluster_instance_class    = var.db_cluster_instance_class
-  backup_retention_period      = var.db_backup_retention_period
-  preferred_backup_window      = var.db_preferred_backup_window
-  preferred_maintenance_window = var.db_preferred_maintenance_window
-
-  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids          = [var.vpc_details.security_groups.database]
-  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pg[0].name
-  deletion_protection             = var.db_deletion_protection
-  skip_final_snapshot             = var.skip_final_snapshot
-  final_snapshot_identifier       = "${var.db_cluster_identifier}-final-snapshot"
-
-  tags = {
-    Name        = "${var.db_cluster_identifier}-instance-${count.index}"
-    Environment = var.environment
-  }
-}
-
-# ------------------------------------------------------------------------------
 # Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_instance"`)
 # ------------------------------------------------------------------------------
 resource "aws_db_instance" "multi_az_instance" {
@@ -280,3 +249,39 @@ resource "aws_db_instance" "single_instance" {
   }
 }
 
+# ------------------------------------------------------------------------------
+# Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_cluster"`)
+# ------------------------------------------------------------------------------
+resource "aws_rds_cluster" "multi_az_cluster" {
+  count              = var.db_engine != "aurora-postgresql" && var.rds_deployment_type == "multi_az_cluster" ? 1 : 0
+  cluster_identifier = "${var.db_cluster_identifier}-multi-az"
+  engine             = var.db_engine
+  engine_version     = var.db_engine_version
+  database_name      = var.database_name
+  master_username    = var.db_master_username
+  master_password    = var.db_master_password
+
+  # Increased allocated storage to meet the minimum for io1
+  allocated_storage            = 100
+  storage_encrypted            = true
+  db_cluster_instance_class    = var.db_cluster_instance_class
+  backup_retention_period      = var.db_backup_retention_period
+  preferred_backup_window      = var.db_preferred_backup_window
+  preferred_maintenance_window = var.db_preferred_maintenance_window
+
+  # Add storage type to fix the error with gp2
+  storage_type = "io1"
+  iops         = 1000 # Required when using io1 storage type
+
+  db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
+  vpc_security_group_ids          = [var.vpc_details.security_groups.database]
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pg[0].name
+  deletion_protection             = var.db_deletion_protection
+  skip_final_snapshot             = var.skip_final_snapshot
+  final_snapshot_identifier       = "${var.db_cluster_identifier}-final-snapshot"
+
+  tags = {
+    Name        = "${var.db_cluster_identifier}-multi-az"
+    Environment = var.environment
+  }
+}

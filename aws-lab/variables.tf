@@ -195,7 +195,9 @@ variable "enable_ssm" {
   default     = true
 }
 
+# Keeping this variable for backward compatibility but it's not actually used
 variable "private_key_path" {
-  description = "Path to the private key file"
+  description = "Path to the private key file - Note: Not used with the new SSM approach"
   type        = string
+  default     = ""
 }

@@ -43,8 +43,9 @@ variable "enable_ssm" {
 }
 
 variable "private_key_path" {
-  description = "Path to the private key file"
+  description = "Path to the private key file (not used in SSM-based approach)"
   type        = string
+  default     = ""
 }
 
 variable "iam_instance_profile" {

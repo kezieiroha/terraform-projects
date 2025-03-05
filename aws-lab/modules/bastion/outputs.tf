@@ -27,5 +27,5 @@ output "bastion_availability_zone" {
 
 output "connection_command" {
   description = "SSH command to connect to the bastion host"
-  value       = "ssh -i ${var.private_key_path} ec2-user@${aws_instance.bastion.public_ip}"
+  value       = "ssh -i [path-to-private-key] ec2-user@${aws_instance.bastion.public_ip}"
 }

@@ -4,6 +4,12 @@
 # Description: Parent main for project
 # ------------------------------------------------------------------------------
 
+# Generate SSH key if needed
+module "key" {
+  source   = "./modules/key"
+  key_name = var.key_name
+}
+
 module "vpc" {
   source             = "./modules/vpc"
   vpc_name           = var.vpc_name
@@ -24,12 +30,13 @@ module "iam" {
 
 # Bastion is always deployed
 module "bastion" {
-  source               = "./modules/bastion"
-  vpc_details          = module.vpc.vpc_details
-  key_name             = var.key_name
-  enable_ssh           = var.enable_ssh
-  enable_ssm           = var.enable_ssm
-  private_key_path     = var.private_key_path
+  source      = "./modules/bastion"
+  vpc_details = module.vpc.vpc_details
+  key_name    = module.key.key_name
+  enable_ssh  = var.enable_ssh
+  enable_ssm  = var.enable_ssm
+  # We still pass this for backward compatibility, but it's not used in the new approach
+  private_key_path     = ""
   instance_type        = var.instance_types.bastion
   iam_instance_profile = module.iam.bastion_instance_profile_name
   aws_region           = var.aws_region
@@ -41,7 +48,7 @@ module "ec2" {
   count                   = var.deploy_ec2_tiers ? 1 : 0
   source                  = "./modules/ec2"
   vpc_details             = module.vpc.vpc_details
-  key_name                = var.key_name
+  key_name                = module.key.key_name
   ec2_az_overrides        = var.ec2_az_overrides
   deploy_web_tier         = var.deploy_web_tier
   deploy_app_tier         = var.deploy_app_tier
@@ -50,6 +57,7 @@ module "ec2" {
     web = var.instance_types.web
     app = var.instance_types.app
   }
+  enable_ssh = var.enable_ssh
 }
 
 module "rds-aurora-cluster" {
