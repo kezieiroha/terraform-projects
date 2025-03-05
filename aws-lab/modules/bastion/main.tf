@@ -73,20 +73,21 @@ resource "aws_instance" "bastion" {
 
 # Configure database access on the bastion after the database is available
 resource "null_resource" "configure_database_access" {
-  # Only run this if db_endpoint is provided
-  count = var.db_endpoint != "" ? 1 : 0
-
   triggers = {
-    db_endpoint = var.db_endpoint
+    # Only trigger when endpoint changes and is not empty
+    db_endpoint = var.db_endpoint != "" ? var.db_endpoint : "not-yet-available"
   }
 
-  # Configure the database access
+  # Make the provisioner itself conditional
   provisioner "file" {
     content = templatefile("${path.module}/configure-db-access.sh.tpl", {
       db_endpoint = var.db_endpoint,
       region      = var.aws_region
     })
     destination = "/home/ec2-user/configure-db-access.sh"
+
+    # Only run when there's an endpoint
+    on_failure = continue
 
     connection {
       type        = "ssh"
@@ -97,10 +98,10 @@ resource "null_resource" "configure_database_access" {
   }
 
   provisioner "remote-exec" {
-    inline = [
+    inline = var.db_endpoint != "" ? [
       "chmod +x /home/ec2-user/configure-db-access.sh",
       "/home/ec2-user/configure-db-access.sh"
-    ]
+    ] : ["echo 'Database endpoint not yet available'"]
 
     connection {
       type        = "ssh"
