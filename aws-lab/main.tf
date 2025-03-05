@@ -61,19 +61,21 @@ module "ec2" {
 }
 
 module "rds-aurora-cluster" {
-  source                    = "./modules/rds-aurora-cluster"
-  vpc_details               = module.vpc.vpc_details
-  database_name             = var.database_name
-  db_master_password        = var.db_master_password
-  db_instance_class         = var.db_instance_class
-  db_cluster_instance_class = var.db_cluster_instance_class
-  db_cluster_instance_count = var.db_cluster_instance_count
-  iam_role_arn              = module.iam.aurora_auth_role_arn
-  db_engine                 = var.db_engine
-  rds_deployment_type       = var.rds_deployment_type
-  db_deletion_protection    = var.db_deletion_protection
-  skip_final_snapshot       = var.skip_final_snapshot
-  environment               = var.environment
-  db_allocated_storage      = var.db_allocated_storage
-  db_max_allocated_storage  = var.db_max_allocated_storage
+  source                        = "./modules/rds-aurora-cluster"
+  vpc_details                   = module.vpc.vpc_details
+  database_name                 = var.database_name
+  db_master_password            = var.db_master_password
+  db_instance_class             = var.db_instance_class
+  db_cluster_instance_class     = var.db_cluster_instance_class
+  db_cluster_instance_count     = var.db_cluster_instance_count
+  iam_role_arn                  = module.iam.aurora_auth_role_arn
+  db_engine                     = var.db_engine
+  db_engine_version             = var.db_engine_version
+  rds_deployment_type           = var.rds_deployment_type
+  db_deletion_protection        = var.db_deletion_protection
+  skip_final_snapshot           = var.skip_final_snapshot
+  environment                   = var.environment
+  db_allocated_storage          = var.db_allocated_storage
+  db_max_allocated_storage      = var.db_max_allocated_storage
+  db_parameter_group_family_rds = var.db_parameter_group_family_rds
 }

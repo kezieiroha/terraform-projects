@@ -201,3 +201,8 @@ variable "private_key_path" {
   type        = string
   default     = ""
 }
+
+variable "db_parameter_group_family_rds" {
+  description = "Parameter group family for RDS PostgreSQL"
+  type        = string
+}

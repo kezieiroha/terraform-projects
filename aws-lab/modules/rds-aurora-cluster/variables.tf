@@ -54,13 +54,11 @@ variable "db_engine" {
 variable "db_engine_version" {
   description = "Database engine version"
   type        = string
-  default     = "16"
 }
 
 variable "db_instance_class" {
   description = "Database instance class"
   type        = string
-  default     = "db.t3.medium"
 }
 
 variable "db_cluster_instance_count" {
@@ -157,7 +155,6 @@ variable "db_parameter_group_family_aurora" {
 variable "db_parameter_group_family_rds" {
   description = "Parameter group family for RDS PostgreSQL"
   type        = string
-  default     = "postgres16"
 }
 
 variable "db_subnet_group_name" {
