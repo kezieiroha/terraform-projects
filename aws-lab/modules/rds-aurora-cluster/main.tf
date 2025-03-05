@@ -240,8 +240,10 @@ resource "aws_db_instance" "single_instance" {
   max_allocated_storage = var.db_max_allocated_storage
   storage_encrypted     = true
 
-  backup_retention_period = var.db_backup_retention_period
-  deletion_protection     = var.db_deletion_protection
+  backup_retention_period   = var.db_backup_retention_period
+  deletion_protection       = var.db_deletion_protection
+  skip_final_snapshot       = var.skip_final_snapshot
+  final_snapshot_identifier = "${var.db_cluster_identifier}-final-snapshot"
 
   db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
