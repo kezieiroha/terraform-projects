@@ -103,8 +103,14 @@ variable "instance_types" {
 }
 
 # Database Variables
+variable "db_master_username" {
+  description = "Master username for the database"
+  type        = string
+  default     = "postgres"
+}
+
 variable "db_master_password" {
-  description = "Master password of the database"
+  description = "Master password for the database"
   type        = string
 }
 

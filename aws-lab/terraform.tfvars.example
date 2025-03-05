@@ -4,7 +4,7 @@
 # Description: Variables for single-region, multi-AZ deployment
 # ------------------------------------------------------------------------------
 
-aaws_region       = "us-east-1"
+aws_region       = "us-east-1"
 aws_account_id   = "123456789012"
 vpc_name         = "kezie-lab-vpc"
 key_name         = "my-key-pair"
@@ -55,15 +55,17 @@ db_engine = "postgres"
 rds_deployment_type = "single_instance"
 
 # Database Configuration
-database_name                 = "auroradb"
+database_name                 = "mydb"
+db_master_username            = "postgres"
 db_master_password            = "yourSecurePassword123!" # Change in real deployment
 db_instance_class             = "db.t3.micro"            # for DB Instance deploy
 db_cluster_instance_class     = "db.c6gd.medium"         # for Cluster deploy
 db_cluster_instance_count     = 1
 db_engine_version             = "15.5"
-db_parameter_group_family_rds = "postgresql15"           # postgresql16, postgresql15, postgresql14
+db_parameter_group_family_rds = "postgres15" # postgres16, postgres15, postgres14
 db_allocated_storage          = 50
 db_max_allocated_storage      = 50
 
 # IAM Authentication
 db_iam_user = "iam_db_user"
+

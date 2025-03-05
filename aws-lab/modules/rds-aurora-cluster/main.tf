@@ -243,6 +243,9 @@ resource "aws_db_instance" "single_instance" {
   db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [var.vpc_details.security_groups.database]
 
+  username = var.db_master_username
+  password = var.db_master_password
+
   tags = {
     Name        = "${var.db_cluster_identifier}-single-instance"
     Environment = var.environment
