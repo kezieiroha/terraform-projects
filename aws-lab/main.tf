@@ -4,14 +4,6 @@
 # Description: Parent main for project
 # ------------------------------------------------------------------------------
 
-module "iam" {
-  source                = "./modules/iam"
-  aws_region            = var.aws_region
-  aws_account_id        = var.aws_account_id
-  db_cluster_identifier = module.rds-aurora-cluster.db_cluster_identifier
-  db_iam_user           = "iam_db_user"
-}
-
 module "vpc" {
   source             = "./modules/vpc"
   vpc_name           = var.vpc_name
@@ -21,20 +13,34 @@ module "vpc" {
   public_subnets     = var.public_subnets
 }
 
-module "ec2" {
-  source           = "./modules/ec2"
-  vpc_details      = module.vpc.vpc_details
-  ec2_az_overrides = var.ec2_az_overrides
-  key_name         = var.key_name
+module "iam" {
+  source                = "./modules/iam"
+  aws_region            = var.aws_region
+  aws_account_id        = var.aws_account_id
+  db_cluster_identifier = module.rds-aurora-cluster.db_cluster_identifier
+  db_iam_user           = var.db_iam_user
+  enable_bastion_iam    = true
 }
 
-module "bastion" {
-  source           = "./modules/bastion"
-  vpc_details      = module.vpc.vpc_details
-  key_name         = var.key_name
-  enable_ssh       = true
-  enable_ssm       = true
-  private_key_path = var.private_key_path
+module "ec2" {
+  source                  = "./modules/ec2"
+  vpc_details             = module.vpc.vpc_details
+  key_name                = var.key_name
+  ec2_az_overrides        = var.ec2_az_overrides
+  deploy_web_tier         = var.deploy_web_tier
+  deploy_app_tier         = var.deploy_app_tier
+  deploy_alternate_az_set = var.deploy_alternate_az_set
+  private_key_path        = var.private_key_path
+  enable_ssh              = var.enable_ssh
+  enable_ssm              = var.enable_ssm
+  instance_types          = var.instance_types
+  aws_region              = var.aws_region
+
+  # Pass IAM instance profile from IAM module
+  iam_instance_profile = module.iam.bastion_instance_profile_name
+
+  # Pass database endpoint to the EC2 module after the database is created
+  db_endpoint = module.rds-aurora-cluster.db_endpoint
 }
 
 module "rds-aurora-cluster" {
@@ -54,5 +60,3 @@ module "rds-aurora-cluster" {
   db_allocated_storage      = var.db_allocated_storage
   db_max_allocated_storage  = var.db_max_allocated_storage
 }
-
-

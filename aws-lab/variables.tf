@@ -30,7 +30,7 @@ variable "vpc_cidr_block" {
 }
 
 variable "availability_zones" {
-  description = "List of private subnet CIDR blocks"
+  description = "List of availability zones"
   type        = list(string)
 }
 
@@ -55,18 +55,45 @@ variable "public_subnets" {
 }
 
 variable "ec2_az_overrides" {
-  description = "Optional AZ override for each EC2 instance (web, db, bastion)"
+  description = "Optional AZ override for each EC2 instance (web, app, bastion)"
   type = object({
     web     = optional(string)
-    db      = optional(string)
+    app     = optional(string)
     bastion = optional(string)
   })
-  #default = {}
+  default = {}
+}
+
+variable "deploy_web_tier" {
+  description = "Flag to deploy web tier EC2 instances"
+  type        = bool
+  default     = false
+}
+
+variable "deploy_app_tier" {
+  description = "Flag to deploy app tier EC2 instances"
+  type        = bool
+  default     = false
 }
 
 variable "deploy_alternate_az_set" {
   description = "Flag to deploy an identical EC2 set in the alternate AZ"
   type        = bool
+  default     = false
+}
+
+variable "instance_types" {
+  description = "Instance types for each EC2 category"
+  type = object({
+    web     = string
+    app     = string
+    bastion = string
+  })
+  default = {
+    web     = "t2.micro"
+    app     = "t2.micro"
+    bastion = "t2.micro"
+  }
 }
 
 variable "db_master_password" {
@@ -163,5 +190,4 @@ variable "enable_ssm" {
 variable "private_key_path" {
   description = "Path to the private key file"
   type        = string
-} 
-
+}

@@ -46,3 +46,15 @@ variable "private_key_path" {
   description = "Path to the private key file"
   type        = string
 }
+
+variable "db_endpoint" {
+  description = "Database endpoint (provided after database creation)"
+  type        = string
+  default     = ""
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}

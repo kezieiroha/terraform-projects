@@ -1,15 +1,17 @@
 # ------------------------------------------------------------------------------
-# File: terraform.tfvars
+# File: terraform.tfvars.example
 # Author: Kezie Iroha
 # Description: Variables for single-region, multi-AZ deployment
 # ------------------------------------------------------------------------------
 
-aws_region = "us-east-1"
-vpc_name   = "kezie-lab-vpc"
-key_name = "" 
+aws_region     = "us-east-1"
+aws_account_id = "123456789012"
+vpc_name       = "kezie-lab-vpc"
+key_name       = "my-key-pair" 
+private_key_path = "~/.ssh/my-key.pem"
 
 # Multi-AZ deployment within a single region
-vpc_cidr_block = "10.0.0.0/16"
+vpc_cidr_block     = "10.0.0.0/16"
 private_subnets    = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 public_subnets     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -17,17 +19,30 @@ availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 # Optional AZ override for EC2 instances
 ec2_az_overrides = {
   web     = "us-east-1a"
-  db      = "us-east-1b"
+  app     = "us-east-1b"
   bastion = "us-east-1c"
 }
 
-# Flag to deploy identical EC2 set in alternate AZ
-deploy_alternate_az_set = false
+# EC2 Tier Deployment Options
+deploy_web_tier = true        # Set to true to deploy Web Tier EC2 instances
+deploy_app_tier = true        # Set to true to deploy App Tier EC2 instances
+deploy_alternate_az_set = false # Set to true for HA deployment across AZs
+
+# EC2 Instance Types
+instance_types = {
+  web     = "t2.micro"
+  app     = "t2.micro"
+  bastion = "t2.micro"
+}
+
+# SSH and SSM Access
+enable_ssh = true
+enable_ssm = true
 
 # Environment: dev, staging, prod
-environment = "Lab"
+environment = "dev"
 
-# Take final backup before destroying a cluster (typically lab)
+# Take final backup before destroying a cluster (typically false for labs)
 skip_final_snapshot = true
 
 # Protect database from deletion
@@ -39,17 +54,15 @@ db_engine = "postgres"
 # aurora_postgresql option: aurora | postgres option: multi_az_cluster, multi_az_instance, single_instance
 rds_deployment_type = "multi_az_cluster"
 
-# Deploy Aurora Postgres Cluster
-deploy_aurora             = true
+# Database Configuration
 database_name             = "auroradb"
-db_master_password        = "some_password"
-db_instance_class         = "db.t3.medium" # for DB Instance deploy
-db_cluster_instance_class = "db.c6gd.medium" # for Cluster deploy
-db_cluster_instance_count = 3
+db_master_password        = "yourSecurePassword123!" # Change in real deployment
+db_instance_class         = "db.t3.medium"           # for DB Instance deploy
+db_cluster_instance_class = "db.c6gd.medium"         # for Cluster deploy
+db_cluster_instance_count = 2
 db_engine_version         = "15.5"
+db_allocated_storage      = 50
+db_max_allocated_storage  = 100
 
 # IAM Authentication
-aws_account_id = "123456789012"
-db_iam_user    = "iam_db_user"
-
-
+db_iam_user = "iam_db_user"

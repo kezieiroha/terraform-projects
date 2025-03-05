@@ -32,3 +32,13 @@ output "db_cluster_identifier" {
     aws_db_instance.single_instance[0].identifier
   )
 }
+
+output "db_endpoint" {
+  description = "The endpoint of the deployed RDS/Aurora instance"
+  value = (
+    var.db_engine == "aurora-postgresql" ? aws_rds_cluster.aurora[0].endpoint :
+    var.rds_deployment_type == "multi_az_cluster" ? aws_rds_cluster.multi_az_cluster[0].endpoint :
+    var.rds_deployment_type == "multi_az_instance" ? aws_db_instance.multi_az_instance[0].endpoint :
+    aws_db_instance.single_instance[0].endpoint
+  )
+}

@@ -31,3 +31,9 @@ variable "db_iam_user" {
   type        = string
   default     = "iam_db_user"
 }
+
+variable "enable_bastion_iam" {
+  description = "Enable IAM resources for bastion host"
+  type        = bool
+  default     = true
+}
