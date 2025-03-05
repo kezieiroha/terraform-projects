@@ -70,7 +70,6 @@ variable "db_cluster_instance_count" {
 variable "db_cluster_identifier" {
   description = "Identifier for the database cluster"
   type        = string
-  default     = "aurora-cluster-1"
 }
 
 variable "db_backup_retention_period" {

@@ -139,6 +139,11 @@ variable "db_cluster_instance_count" {
   type        = number
 }
 
+variable "db_cluster_identifier" {
+  description = "Identifier for the database cluster"
+  type        = string
+}
+
 variable "iam_role_name" {
   description = "IAM role name for Aurora authentication"
   type        = string
