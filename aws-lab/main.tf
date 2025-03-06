@@ -31,17 +31,18 @@ module "iam" {
 
 # Bastion is always deployed
 module "bastion" {
-  source      = "./modules/bastion"
-  vpc_details = module.vpc.vpc_details
-  key_name    = module.key.key_name
-  enable_ssh  = var.enable_ssh
-  enable_ssm  = var.enable_ssm
-  # We still pass this for backward compatibility, but it's not used in the new approach
+  source               = "./modules/bastion"
+  vpc_details          = module.vpc.vpc_details
+  key_name             = module.key.key_name
+  enable_ssh           = var.enable_ssh
+  enable_ssm           = var.enable_ssm
   private_key_path     = ""
   instance_type        = var.instance_types.bastion
   iam_instance_profile = module.iam.bastion_instance_profile_name
   aws_region           = var.aws_region
   db_endpoint          = module.rds-aurora-cluster.db_endpoint
+  db_engine            = var.db_engine
+  environment          = var.environment
 }
 
 # EC2 tiers are optional based on flags

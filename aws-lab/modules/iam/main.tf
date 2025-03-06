@@ -124,7 +124,10 @@ resource "aws_iam_policy" "rds_connect_policy" {
         Effect = "Allow",
         Action = [
           "ssm:GetParameter",
+          "ssm:GetParameters",
           "ssm:PutParameter",
+          "ssm:DeleteParameter",
+          "ssm:ListTagsForResource",
           "rds:DescribeDBClusters",
           "rds:DescribeDBInstances"
         ],
