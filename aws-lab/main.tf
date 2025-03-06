@@ -80,4 +80,6 @@ module "rds-aurora-cluster" {
   db_max_allocated_storage      = var.db_max_allocated_storage
   db_parameter_group_family_rds = var.db_parameter_group_family_rds
   db_cluster_identifier         = var.db_cluster_identifier
+  db_storage_type               = var.db_storage_type
+  db_iops                       = var.db_iops
 }

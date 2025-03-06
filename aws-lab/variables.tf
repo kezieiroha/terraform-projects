@@ -223,3 +223,15 @@ variable "allowed_ssh_cidrs" {
   type        = list(string)
   default     = []
 }
+
+variable "db_storage_type" {
+  description = "Storage type for the database (gp2, gp3, io1)"
+  type        = string
+  default     = "gp3"
+}
+
+variable "db_iops" {
+  description = "Provisioned IOPS for the database (only used with io1 storage type)"
+  type        = number
+  default     = 1000
+}

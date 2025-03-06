@@ -8,7 +8,6 @@
 # ------------------------------------------------------------------------------
 # Local Variables for Derived Parameters
 # ------------------------------------------------------------------------------
-# Update this in the locals block
 locals {
   # Approximate RAM per instance size (in MB)
   instance_ram = {
@@ -39,6 +38,121 @@ locals {
 
   # Connection timeout for idle sessions (15 minutes)
   idle_in_transaction_session_timeout = 900000 # 15 minutes in milliseconds
+
+  # Common PostgreSQL parameters for both Aurora and RDS
+  common_pg_parameters = [
+    # Logging parameters
+    {
+      name         = "log_connections"
+      value        = "1"
+      apply_method = "immediate"
+    },
+    {
+      name         = "log_disconnections"
+      value        = "1"
+      apply_method = "immediate"
+    },
+    {
+      name         = "log_statement"
+      value        = "ddl"
+      apply_method = "immediate"
+    },
+    {
+      name         = "log_min_duration_statement"
+      value        = "250"
+      apply_method = "immediate"
+    },
+    {
+      name         = "log_lock_waits"
+      value        = "1"
+      apply_method = "immediate"
+    },
+    {
+      name         = "log_temp_files"
+      value        = "0"
+      apply_method = "immediate"
+    },
+
+    # Memory parameters
+    {
+      name         = "shared_buffers"
+      value        = tostring(local.shared_buffers)
+      apply_method = "pending-reboot" # Static parameter
+    },
+    {
+      name         = "effective_cache_size"
+      value        = tostring(local.effective_cache_size)
+      apply_method = "pending-reboot" # Static parameter
+    },
+    {
+      name         = "work_mem"
+      value        = tostring(local.work_mem)
+      apply_method = "immediate" # Dynamic parameter
+    },
+    {
+      name         = "maintenance_work_mem"
+      value        = tostring(local.maintenance_work_mem)
+      apply_method = "immediate"
+    },
+
+    # Query planner parameters
+    {
+      name         = "random_page_cost"
+      value        = tostring(local.random_page_cost)
+      apply_method = "immediate" # Dynamic parameter
+    },
+    {
+      name         = "checkpoint_timeout"
+      value        = "300"
+      apply_method = "immediate"
+    },
+
+    # Autovacuum parameters
+    {
+      name         = "autovacuum"
+      value        = "1"
+      apply_method = "immediate"
+    },
+    {
+      name         = "autovacuum_max_workers"
+      value        = "3"
+      apply_method = "pending-reboot"
+    },
+    {
+      name         = "autovacuum_naptime"
+      value        = "60"
+      apply_method = "immediate"
+    },
+    {
+      name         = "autovacuum_vacuum_scale_factor"
+      value        = "0.05"
+      apply_method = "immediate"
+    },
+    {
+      name         = "autovacuum_analyze_scale_factor"
+      value        = "0.025"
+      apply_method = "immediate"
+    },
+
+    # Connection parameters
+    {
+      name         = "max_connections"
+      value        = tostring(var.max_connections)
+      apply_method = "pending-reboot"
+    },
+    {
+      name         = "idle_in_transaction_session_timeout"
+      value        = tostring(local.idle_in_transaction_session_timeout)
+      apply_method = "immediate"
+    },
+
+    # Statement timeout to prevent long-running queries
+    {
+      name         = "statement_timeout"
+      value        = "3600000" # 1 hour in milliseconds
+      apply_method = "immediate"
+    }
+  ]
 }
 
 # ------------------------------------------------------------------------------
@@ -63,110 +177,14 @@ resource "aws_rds_cluster_parameter_group" "aurora_pg" {
   family      = var.db_parameter_group_family_aurora
   description = "Best practices parameter group for Aurora PostgreSQL"
 
-  # Logging parameters
-  parameter {
-    name  = "log_connections"
-    value = "1"
-  }
-  parameter {
-    name  = "log_disconnections"
-    value = "1"
-  }
-  parameter {
-    name  = "log_statement"
-    value = "ddl"
-  }
-  parameter {
-    name  = "log_min_duration_statement"
-    value = "250"
-  }
-  parameter {
-    name  = "log_lock_waits"
-    value = "1"
-  }
-  parameter {
-    name  = "log_temp_files"
-    value = "0"
-  }
-
-  # Memory parameters
-  parameter {
-    name         = "shared_buffers"
-    value        = tostring(local.shared_buffers)
-    apply_method = "pending-reboot" # Static parameter
-  }
-  parameter {
-    name         = "effective_cache_size"
-    value        = tostring(local.effective_cache_size)
-    apply_method = "pending-reboot" # Static parameter
-  }
-  parameter {
-    name         = "work_mem"
-    value        = tostring(local.work_mem)
-    apply_method = "immediate" # Dynamic parameter
-  }
-  parameter {
-    name         = "maintenance_work_mem"
-    value        = tostring(local.maintenance_work_mem)
-    apply_method = "immediate"
-  }
-
-  # Query planner parameters
-  parameter {
-    name         = "random_page_cost"
-    value        = tostring(local.random_page_cost)
-    apply_method = "immediate" # Dynamic parameter
-  }
-  parameter {
-    name         = "checkpoint_timeout"
-    value        = "300"
-    apply_method = "immediate"
-  }
-
-  # Autovacuum parameters
-  parameter {
-    name         = "autovacuum"
-    value        = "1"
-    apply_method = "immediate"
-  }
-  parameter {
-    name         = "autovacuum_max_workers"
-    value        = "3"
-    apply_method = "pending-reboot"
-  }
-  parameter {
-    name         = "autovacuum_naptime"
-    value        = "60"
-    apply_method = "immediate"
-  }
-  parameter {
-    name         = "autovacuum_vacuum_scale_factor"
-    value        = "0.05"
-    apply_method = "immediate"
-  }
-  parameter {
-    name         = "autovacuum_analyze_scale_factor"
-    value        = "0.025"
-    apply_method = "immediate"
-  }
-
-  # Connection parameters
-  parameter {
-    name         = "max_connections"
-    value        = tostring(var.max_connections)
-    apply_method = "pending-reboot"
-  }
-  parameter {
-    name         = "idle_in_transaction_session_timeout"
-    value        = tostring(local.idle_in_transaction_session_timeout)
-    apply_method = "immediate"
-  }
-
-  # Statement timeout to prevent long-running queries
-  parameter {
-    name         = "statement_timeout"
-    value        = "3600000" # 1 hour in milliseconds
-    apply_method = "immediate"
+  # Apply all common parameters using dynamic block
+  dynamic "parameter" {
+    for_each = local.common_pg_parameters
+    content {
+      name         = parameter.value.name
+      value        = parameter.value.value
+      apply_method = parameter.value.apply_method
+    }
   }
 }
 
@@ -179,110 +197,14 @@ resource "aws_rds_cluster_parameter_group" "rds_pg" {
   family      = var.db_parameter_group_family_rds
   description = "Best practices parameter group for RDS PostgreSQL"
 
-  # Logging parameters
-  parameter {
-    name  = "log_connections"
-    value = "1"
-  }
-  parameter {
-    name  = "log_disconnections"
-    value = "1"
-  }
-  parameter {
-    name  = "log_statement"
-    value = "ddl"
-  }
-  parameter {
-    name  = "log_min_duration_statement"
-    value = "250"
-  }
-  parameter {
-    name  = "log_lock_waits"
-    value = "1"
-  }
-  parameter {
-    name  = "log_temp_files"
-    value = "0"
-  }
-
-  # Memory parameters
-  parameter {
-    name         = "shared_buffers"
-    value        = tostring(local.shared_buffers)
-    apply_method = "pending-reboot" # Static parameter
-  }
-  parameter {
-    name         = "effective_cache_size"
-    value        = tostring(local.effective_cache_size)
-    apply_method = "pending-reboot" # Static parameter
-  }
-  parameter {
-    name         = "work_mem"
-    value        = tostring(local.work_mem)
-    apply_method = "immediate" # Dynamic parameter
-  }
-  parameter {
-    name         = "maintenance_work_mem"
-    value        = tostring(local.maintenance_work_mem)
-    apply_method = "immediate"
-  }
-
-  # Query planner parameters
-  parameter {
-    name         = "random_page_cost"
-    value        = tostring(local.random_page_cost)
-    apply_method = "immediate" # Dynamic parameter
-  }
-  parameter {
-    name         = "checkpoint_timeout"
-    value        = "300"
-    apply_method = "immediate"
-  }
-
-  # Autovacuum parameters
-  parameter {
-    name         = "autovacuum"
-    value        = "1"
-    apply_method = "immediate"
-  }
-  parameter {
-    name         = "autovacuum_max_workers"
-    value        = "3"
-    apply_method = "pending-reboot"
-  }
-  parameter {
-    name         = "autovacuum_naptime"
-    value        = "60"
-    apply_method = "immediate"
-  }
-  parameter {
-    name         = "autovacuum_vacuum_scale_factor"
-    value        = "0.05"
-    apply_method = "immediate"
-  }
-  parameter {
-    name         = "autovacuum_analyze_scale_factor"
-    value        = "0.025"
-    apply_method = "immediate"
-  }
-
-  # Connection parameters
-  parameter {
-    name         = "max_connections"
-    value        = tostring(var.max_connections)
-    apply_method = "pending-reboot"
-  }
-  parameter {
-    name         = "idle_in_transaction_session_timeout"
-    value        = tostring(local.idle_in_transaction_session_timeout)
-    apply_method = "immediate"
-  }
-
-  # Statement timeout to prevent long-running queries
-  parameter {
-    name         = "statement_timeout"
-    value        = "3600000" # 1 hour in milliseconds
-    apply_method = "immediate"
+  # Apply all common parameters using dynamic block
+  dynamic "parameter" {
+    for_each = local.common_pg_parameters
+    content {
+      name         = parameter.value.name
+      value        = parameter.value.value
+      apply_method = parameter.value.apply_method
+    }
   }
 }
 
@@ -421,9 +343,8 @@ resource "aws_rds_cluster" "multi_az_cluster" {
   preferred_backup_window      = var.db_preferred_backup_window
   preferred_maintenance_window = var.db_preferred_maintenance_window
 
-  # FIXME: Add storage type and iops variable to fix the error with gp2
-  storage_type = "io1"
-  iops         = 1000 # Required when using io1 storage type
+  storage_type = var.db_storage_type
+  iops         = var.db_storage_type == "io1" ? var.db_iops : null
 
   db_subnet_group_name            = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids          = [var.vpc_details.security_groups.database]

@@ -195,3 +195,24 @@ variable "db_cluster_instance_class" {
   description = "Instance class for Multi-AZ RDS Cluster"
   type        = string
 }
+
+# New variables for storage configuration
+variable "db_storage_type" {
+  description = "Storage type for the database (gp2, gp3, io1)"
+  type        = string
+  default     = "gp3"
+  validation {
+    condition     = contains(["gp2", "gp3", "io1"], var.db_storage_type)
+    error_message = "Valid storage types are: gp2, gp3, io1."
+  }
+}
+
+variable "db_iops" {
+  description = "Provisioned IOPS for the database (only used with io1 storage type)"
+  type        = number
+  default     = 1000
+  validation {
+    condition     = var.db_iops >= 1000 && var.db_iops <= 64000
+    error_message = "IOPS value must be between 1000 and 64000."
+  }
+}
