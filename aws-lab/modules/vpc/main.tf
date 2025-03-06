@@ -12,6 +12,9 @@ locals {
     for cidr in var.private_subnets : cidr
     if contains(var.public_subnets, cidr)
   ])
+
+  # Default to a restricted CIDR if none provided
+  allowed_ssh_cidrs = length(var.allowed_ssh_cidrs) > 0 ? var.allowed_ssh_cidrs : ["127.0.0.1/32"]
 }
 
 resource "aws_vpc" "main" {
@@ -184,20 +187,25 @@ resource "aws_security_group" "database" {
 
 resource "aws_security_group" "bastion" {
   name        = "${var.vpc_name}-bastion-sg"
-  description = "Allow SSH access"
+  description = "Allow restricted SSH access"
   vpc_id      = aws_vpc.main.id
+
+  # Restricted SSH access to specified CIDR blocks
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = local.allowed_ssh_cidrs
+    description = "Restricted SSH access"
   }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   tags = {
     Name = "${var.vpc_name}-bastion-sg"
   }

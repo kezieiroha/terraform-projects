@@ -217,3 +217,9 @@ variable "db_parameter_group_family_rds" {
   description = "Parameter group family for RDS PostgreSQL"
   type        = string
 }
+
+variable "allowed_ssh_cidrs" {
+  description = "List of CIDR blocks allowed to connect to bastion via SSH"
+  type        = list(string)
+  default     = []
+}

@@ -32,8 +32,8 @@ resource "aws_iam_policy" "aurora_auth_policy" {
       Action = [
         "rds-db:connect"
       ],
-      # Apply for all users
-      Resource = "arn:aws:rds-db:${var.aws_region}:${var.aws_account_id}:dbuser/${var.db_cluster_identifier}/*"
+      # More specific permission for the IAM user
+      Resource = "arn:aws:rds-db:${var.aws_region}:${var.aws_account_id}:dbuser/${var.db_cluster_identifier}/${var.db_iam_user}"
     }]
   })
 }
@@ -116,7 +116,13 @@ resource "aws_iam_policy" "rds_connect_policy" {
       {
         Effect = "Allow",
         Action = [
-          "rds-db:connect",
+          "rds-db:connect"
+        ],
+        Resource = "arn:aws:rds-db:${var.aws_region}:${var.aws_account_id}:dbuser/${var.db_cluster_identifier}/${var.db_iam_user}"
+      },
+      {
+        Effect = "Allow",
+        Action = [
           "ssm:GetParameter",
           "ssm:PutParameter",
           "rds:DescribeDBClusters",

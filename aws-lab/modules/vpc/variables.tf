@@ -39,3 +39,9 @@ variable "public_subnets" {
     error_message = "Duplicate CIDR blocks detected within public_subnets. Please use unique CIDR ranges."
   }
 }
+
+variable "allowed_ssh_cidrs" {
+  type        = list(string)
+  description = "List of CIDR blocks allowed to connect to bastion via SSH"
+  default     = []
+}
