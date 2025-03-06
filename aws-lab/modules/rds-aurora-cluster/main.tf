@@ -345,7 +345,7 @@ resource "aws_rds_cluster_instance" "aurora_instances" {
 # Deploy Multi-AZ RDS Instance (if `rds_deployment_type == "multi_az_instance"`)
 # ------------------------------------------------------------------------------
 resource "aws_db_instance" "multi_az_instance" {
-  count                 = var.db_engine != "aurora-postgresql" && var.rds_deployment_type == "multi_az_instance" ? 1 : 0
+  count                 = var.db_engine != "aurora-postgresql" && var.rds_deployment_type == "multi_az_instance" ? var.db_cluster_instance_count : 0
   identifier            = "${var.db_cluster_identifier}-multi-az-instance"
   engine                = var.db_engine
   engine_version        = var.db_engine_version
@@ -414,15 +414,14 @@ resource "aws_rds_cluster" "multi_az_cluster" {
   master_username    = var.db_master_username
   master_password    = var.db_master_password
 
-  # Increased allocated storage to meet the minimum for io1
-  allocated_storage            = 100
+  allocated_storage            = var.db_allocated_storage
   storage_encrypted            = true
   db_cluster_instance_class    = var.db_cluster_instance_class
   backup_retention_period      = var.db_backup_retention_period
   preferred_backup_window      = var.db_preferred_backup_window
   preferred_maintenance_window = var.db_preferred_maintenance_window
 
-  # Add storage type to fix the error with gp2
+  # FIXME: Add storage type and iops variable to fix the error with gp2
   storage_type = "io1"
   iops         = 1000 # Required when using io1 storage type
 
