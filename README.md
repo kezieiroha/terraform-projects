@@ -1,10 +1,8 @@
 # Terraform Labs
 
-This repository contains my personal Terraform projects and infrastructure automation labs. It serves as a hands-on environment for exploring Terraform best practices, cloud automation, and infrastructure as code (IaC).
+This repository contains my personal Terraform projects and infrastructure automation labs. It serves as a hands-on environment for exploring and practising cloud architecture patterns, database configurations, and infrastructure-as-code best practices.
 
 ## Usage Permissions
-
-This repository contains my personal Terraform infrastructure code projects exploring and practising cloud architecture patterns, database configurations, and infrastructure-as-code best practices.
 
 **This code is provided for:**
 - Educational purposes
