@@ -13,7 +13,7 @@ provider "local" {}
 resource "local_file" "vagrantfile" {
   filename = "${path.module}/Vagrantfile"
   content  = <<-EOT
- # -*- mode: ruby -*-
+# -*- mode: ruby -*-
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
@@ -118,6 +118,13 @@ EOF
       kubeadm token create --print-join-command > /vagrant/k8s-join-command.sh
       chmod +x /vagrant/k8s-join-command.sh
     SHELL
+
+    # Separate provisioning step to copy admin.conf after it's created
+    master.vm.provision "shell", inline: <<-SHELL
+      echo "Copying admin.conf to /vagrant for worker nodes..."
+      cp /etc/kubernetes/admin.conf /vagrant/admin.conf
+      chmod 644 /vagrant/admin.conf
+    SHELL
   end
 
   # Worker nodes configuration
@@ -216,10 +223,37 @@ EOF
         echo "Joining Kubernetes cluster..."
         bash /vagrant/k8s-join-command.sh
       SHELL
+
+      # Separate provisioning step to set up kubeconfig after joining the cluster
+      worker.vm.provision "shell", inline: <<-SHELL
+        echo "Waiting for admin.conf from master..."
+        timeout=300
+        elapsed=0
+        while [ ! -f /vagrant/admin.conf ]; do
+          echo "Waiting for /vagrant/admin.conf..."
+          sleep 10
+          elapsed=$((elapsed + 10))
+          if [ $elapsed -ge $timeout ]; then
+            echo "ERROR: Timeout waiting for /vagrant/admin.conf. Exiting."
+            exit 1
+          fi
+        done
+        echo "Copying admin.conf to both system and user locations..."
+        # System location
+        mkdir -p /etc/kubernetes
+        cp /vagrant/admin.conf /etc/kubernetes/admin.conf
+        chmod 644 /etc/kubernetes/admin.conf
+        
+        # User location (for convenience)
+        mkdir -p /home/vagrant/.kube
+        cp /vagrant/admin.conf /home/vagrant/.kube/config
+        chown vagrant:vagrant /home/vagrant/.kube/config
+        echo "export KUBECONFIG=/home/vagrant/.kube/config" >> /home/vagrant/.bashrc
+      SHELL
     end
   end
 end
-  EOT
+EOT
 }
 
 # Run Vagrant using Terraform
