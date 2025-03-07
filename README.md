@@ -9,7 +9,7 @@ This repository contains my personal Terraform projects and infrastructure autom
 - Portfolio demonstration
 - Personal reference
 
-**This code is NOT licensed for:**
+**This code is not licensed for:**
 - Commercial use without express permission
 - Direct implementation in production environments
 - Distribution or incorporation into other repositories without attribution
