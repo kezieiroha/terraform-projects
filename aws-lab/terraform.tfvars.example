@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # File: terraform.tfvars.example
 # Author: Kezie Iroha
-# Description: Variables for single-region, multi-AZ deployment
+# Description: Variables for single-region, multi-AZ deployment with Load Balancing and Auto Scaling
 # ------------------------------------------------------------------------------
 
 aws_region       = "us-east-1"
@@ -16,13 +16,16 @@ private_subnets    = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 public_subnets     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
-# EC2 Tier Deployment Options
-deploy_ec2_tiers        = false # Master flag to deploy EC2 tiers
-deploy_web_tier         = false # Deploy Web Tier EC2 instances
-deploy_app_tier         = false # Deploy App Tier EC2 instances
-deploy_alternate_az_set = false # Deploy HA instances across AZs
+# Deployment Strategy Options
+deploy_ec2_tiers   = false  # Deploy standalone EC2 instances (without auto scaling)
+deploy_auto_scaling = true  # Deploy with load balancing and auto scaling
 
-# Optional AZ override for EC2 instances
+# EC2 Tier Deployment Options (applies to both standalone EC2 and ASG)
+deploy_web_tier         = true  # Deploy Web Tier
+deploy_app_tier         = true  # Deploy App Tier
+
+# Optional AZ override for standalone EC2 instances (when deploy_ec2_tiers = true)
+deploy_alternate_az_set = false # Deploy HA instances across AZs for standalone EC2
 ec2_az_overrides = {
   web = "us-east-1a"
   app = "us-east-1b"
@@ -73,3 +76,33 @@ db_iops                       = 1000   # Only used with io1 storage type
 
 # IAM Authentication
 db_iam_user = "iam_db_user"
+
+# ------------------------------------------------------------------------------
+# Load Balancing and Auto Scaling Configuration
+# ------------------------------------------------------------------------------
+
+# Load Balancer Configuration
+enable_alb_access_logs = false
+#alb_access_logs_bucket = "my-alb-logs-bucket" # Uncomment and set if enable_alb_access_logs is true
+web_health_check_path = "/"
+app_health_check_path = "/health"
+
+# HTTPS Configuration
+enable_https = false
+#certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234-5678-90ab-cdef-example123456" # Uncomment and set if enable_https is true
+
+# Auto Scaling Configuration
+web_asg_config = {
+  min_size         = 2
+  max_size         = 4
+  desired_capacity = 2
+}
+
+app_asg_config = {
+  min_size         = 2
+  max_size         = 4
+  desired_capacity = 2
+}
+
+# SSH Access for Bastion
+allowed_ssh_cidrs = ["0.0.0.0/0"] # Restrict to your IP address in production

@@ -1,0 +1,1 @@
+Database endpoint (rds-db-single-instance.cv244s608wpb.us-east-1.rds.amazonaws.com:5432) was included in EC2 user_data.
