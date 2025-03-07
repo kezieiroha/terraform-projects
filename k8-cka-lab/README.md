@@ -2,9 +2,8 @@
 
 My local Kubernetes environment built with Vagrant and VMware for Certified Kubernetes Administrator (CKA) exam preparation.
 
-## Overview
+This project intentionally uses Terraform to generate and execute the Vagrantfile as an exploration of using Terraform for local resource deployment. While there's no technical advantage over using Vagrant directly for this specific use case, it served as a learning exercise for Terraform's local provisioning capabilities.
 
-This project provides a fully automated setup of a multi-node Kubernetes cluster using Vagrant and VMware Fusion. It creates one control plane (master) node and two worker nodes configured with Flannel CNI networking, providing a realistic environment for practicing Kubernetes administration tasks relevant to the CKA exam.
 
 ## Components & Technologies
 
