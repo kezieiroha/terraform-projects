@@ -4,7 +4,6 @@
 # Description: Parent main for project
 # ------------------------------------------------------------------------------
 
-# Generate SSH key if needed
 module "key" {
   source   = "./modules/key"
   key_name = var.key_name
@@ -29,7 +28,6 @@ module "iam" {
   enable_bastion_iam    = true
 }
 
-# Bastion is always deployed
 module "bastion" {
   source               = "./modules/bastion"
   vpc_details          = module.vpc.vpc_details
@@ -45,7 +43,6 @@ module "bastion" {
   environment          = var.environment
 }
 
-# EC2 tiers are optional based on flags (only used if not using auto scaling)
 module "ec2" {
   count                   = var.deploy_ec2_tiers && !var.deploy_auto_scaling ? 1 : 0
   source                  = "./modules/ec2"
@@ -85,7 +82,6 @@ module "rds-aurora-cluster" {
   db_iops                       = var.db_iops
 }
 
-# New Load Balancer Module (only if auto scaling is enabled)
 module "load_balancer" {
   count                      = var.deploy_auto_scaling ? 1 : 0
   source                     = "./modules/load_balancer"
@@ -100,10 +96,9 @@ module "load_balancer" {
   certificate_arn            = var.certificate_arn
 }
 
-# New Auto Scaling Module (only if auto scaling is enabled)
 module "auto_scaling" {
-  count           = var.deploy_auto_scaling ? 1 : 0
-  source          = "./modules/auto_scaling"
+  source = "./modules/auto_scaling"
+
   environment     = var.environment
   vpc_details     = module.vpc.vpc_details
   deploy_web_tier = var.deploy_web_tier
@@ -113,12 +108,12 @@ module "auto_scaling" {
     web = var.instance_types.web
     app = var.instance_types.app
   }
-  key_name             = module.key.key_name
-  enable_ssh           = var.enable_ssh
-  iam_instance_profile = module.iam.bastion_instance_profile_name
-  web_asg_config       = var.web_asg_config
-  app_asg_config       = var.app_asg_config
-  # Pass ALB and target group ARNs for scaling policies
+  enable_ssh = var.enable_ssh
+  key_name   = module.key.key_name # Now this will work
+
+  web_asg_config = var.web_asg_config
+  app_asg_config = var.app_asg_config
+
   web_alb_arn          = module.load_balancer[0].web_alb_arn
   web_target_group_arn = module.load_balancer[0].web_target_group_arn
   app_alb_arn          = module.load_balancer[0].app_alb_arn

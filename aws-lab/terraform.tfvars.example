@@ -93,14 +93,14 @@ enable_https = false
 
 # Auto Scaling Configuration
 web_asg_config = {
-  min_size         = 2
-  max_size         = 4
+  min_size         = 1
+  max_size         = 2
   desired_capacity = 2
 }
 
 app_asg_config = {
-  min_size         = 2
-  max_size         = 4
+  min_size         = 1
+  max_size         = 2
   desired_capacity = 2
 }
 

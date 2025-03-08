@@ -1,8 +1,8 @@
-# ------------------------------------------ 
+# ------------------------------------------------------------------------------
 # File: outputs.tf
 # Author: Kezie Iroha
-# Description: Parent outputs for project 
-# ----------------------------------------- 
+# Description: Parent outputs for project
+# ------------------------------------------------------------------------------
 
 # VPC Outputs
 output "vpc_id" {
@@ -15,28 +15,28 @@ output "vpc_cidr" {
   value       = module.vpc.vpc_details.vpc_cidr
 }
 
-output "public_subnet_ids" {
+output "public_subnets" {
   description = "IDs of the public subnets"
   value       = module.vpc.vpc_details.subnets.public
 }
 
-output "private_subnet_ids" {
+output "private_subnets" {
   description = "IDs of the private subnets"
   value       = module.vpc.vpc_details.subnets.private
 }
 
 # Bastion Outputs
-output "bastion_instance_id" {
-  description = "ID of the bastion host"
-  value       = module.bastion.bastion_instance_id
-}
-
 output "bastion_public_ip" {
   description = "Public IP of the bastion host"
   value       = module.bastion.bastion_public_ip
 }
 
-output "bastion_ssh_command" {
+output "bastion_private_ip" {
+  description = "Private IP of the bastion host"
+  value       = module.bastion.bastion_private_ip
+}
+
+output "bastion_connection_command" {
   description = "SSH command to connect to the bastion host"
   value       = module.bastion.connection_command
 }
@@ -47,57 +47,50 @@ output "db_endpoint" {
   value       = module.rds-aurora-cluster.db_endpoint
 }
 
-output "db_identifier" {
-  description = "Identifier of the database"
+output "db_cluster_identifier" {
+  description = "Identifier of the database cluster"
   value       = module.rds-aurora-cluster.db_cluster_identifier
 }
 
-# EC2 Outputs (if deployed without auto scaling)
-output "ec2_instance_ids" {
-  description = "IDs of the EC2 instances (if deployed without auto scaling)"
-  value       = var.deploy_ec2_tiers && !var.deploy_auto_scaling ? module.ec2[0].instance_ids : null
+# EC2 Tier Outputs (if deployed)
+output "web_instance_public_ips" {
+  description = "Public IPs of the web tier instances"
+  value       = var.deploy_ec2_tiers && var.deploy_web_tier ? module.ec2[0].public_ips.web : []
 }
 
-output "ec2_public_ips" {
-  description = "Public IPs of the web tier EC2 instances (if deployed without auto scaling)"
-  value       = var.deploy_ec2_tiers && !var.deploy_auto_scaling ? module.ec2[0].public_ips : null
+output "app_instance_private_ips" {
+  description = "Private IPs of the app tier instances"
+  value       = var.deploy_ec2_tiers && var.deploy_app_tier ? module.ec2[0].private_ips.app : []
 }
 
-# Load Balancer Outputs (if auto scaling is enabled)
-output "web_alb_dns_name" {
-  description = "DNS name of web tier Application Load Balancer"
-  value       = var.deploy_auto_scaling ? module.load_balancer[0].web_alb_dns_name : null
+# Auto Scaling Group Outputs - Version that works with plain module (no count)
+output "auto_scaling_web_asg_name" {
+  description = "Name of the web tier Auto Scaling Group"
+  value       = var.deploy_web_tier ? module.auto_scaling.web_asg_name : null
 }
 
-output "app_alb_dns_name" {
-  description = "DNS name of app tier Application Load Balancer"
-  value       = var.deploy_auto_scaling ? module.load_balancer[0].app_alb_dns_name : null
+output "auto_scaling_app_asg_name" {
+  description = "Name of the app tier Auto Scaling Group"
+  value       = var.deploy_app_tier ? module.auto_scaling.app_asg_name : null
 }
 
-# Auto Scaling Outputs (if auto scaling is enabled)
-output "web_asg_name" {
-  description = "Name of web tier Auto Scaling Group"
-  value       = var.deploy_auto_scaling && var.deploy_web_tier ? module.auto_scaling[0].web_asg_name : null
+# Key Outputs
+output "key_name" {
+  description = "Name of the generated key pair"
+  value       = module.key.key_name
 }
 
-output "app_asg_name" {
-  description = "Name of app tier Auto Scaling Group"
-  value       = var.deploy_auto_scaling && var.deploy_app_tier ? module.auto_scaling[0].app_asg_name : null
+output "key_pair_id" {
+  description = "ID of the generated key pair"
+  value       = module.key.key_pair_id
 }
 
-# Deployment Summary
-output "deployment_type" {
-  description = "Summary of deployment type"
-  value = {
-    using_auto_scaling = var.deploy_auto_scaling
-    web_tier_deployed  = var.deploy_auto_scaling ? var.deploy_web_tier : (var.deploy_ec2_tiers ? var.deploy_web_tier : false)
-    app_tier_deployed  = var.deploy_auto_scaling ? var.deploy_app_tier : (var.deploy_ec2_tiers ? var.deploy_app_tier : false)
-    database_type      = var.db_engine == "aurora-postgresql" ? "Aurora PostgreSQL" : "RDS PostgreSQL (${var.rds_deployment_type})"
-  }
-}
-
-# Access Information
-output "application_url" {
-  description = "URL to access the web application"
-  value       = var.deploy_auto_scaling && var.deploy_web_tier ? "http://${module.load_balancer[0].web_alb_dns_name}" : (var.deploy_ec2_tiers && var.deploy_web_tier && !var.deploy_auto_scaling ? "http://${module.ec2[0].public_ips.web[0]}" : null)
-}
+# output "web_alb_dns_name" {
+#   description = "DNS name of the web tier ALB"
+#   value       = module.load_balancer[0].web_alb_dns_name
+# }
+# 
+# output "app_alb_dns_name" {
+#   description = "DNS name of the app tier ALB"
+#   value       = module.load_balancer[0].app_alb_dns_name
+# }
