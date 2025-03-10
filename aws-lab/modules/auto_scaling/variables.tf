@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Module: auto_scaling
 # File: modules/auto_scaling/variables.tf
-# Author: Kezie Iroha (compatible version)
+# Author: Kezie Iroha  
 # Description: Variables for Auto Scaling module
 # ------------------------------------------------------------------------------
 

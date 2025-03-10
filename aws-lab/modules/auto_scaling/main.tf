@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Module: auto_scaling
 # File: modules/auto_scaling/main.tf
-# Author: Kezie Iroha (compatibility version with fixes)
+# Author: Kezie Iroha  
 # Description: Auto Scaling module for web and app tiers
 # ------------------------------------------------------------------------------
 
