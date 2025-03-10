@@ -4,7 +4,6 @@
 # Description: Parent main for project
 # ------------------------------------------------------------------------------
 
-# Generate SSH key if needed
 module "key" {
   source   = "./modules/key"
   key_name = var.key_name
@@ -29,7 +28,6 @@ module "iam" {
   enable_bastion_iam    = true
 }
 
-# Bastion is always deployed
 module "bastion" {
   source               = "./modules/bastion"
   vpc_details          = module.vpc.vpc_details
@@ -45,9 +43,8 @@ module "bastion" {
   environment          = var.environment
 }
 
-# EC2 tiers are optional based on flags
 module "ec2" {
-  count                   = var.deploy_ec2_tiers ? 1 : 0
+  count                   = var.deploy_ec2_tiers && !var.deploy_auto_scaling ? 1 : 0
   source                  = "./modules/ec2"
   vpc_details             = module.vpc.vpc_details
   key_name                = module.key.key_name
@@ -83,4 +80,42 @@ module "rds-aurora-cluster" {
   db_cluster_identifier         = var.db_cluster_identifier
   db_storage_type               = var.db_storage_type
   db_iops                       = var.db_iops
+}
+
+module "load_balancer" {
+  count                      = var.deploy_auto_scaling ? 1 : 0
+  source                     = "./modules/load_balancer"
+  environment                = var.environment
+  vpc_details                = module.vpc.vpc_details
+  enable_deletion_protection = false
+  enable_access_logs         = var.enable_alb_access_logs
+  access_logs_bucket         = var.alb_access_logs_bucket
+  web_health_check_path      = var.web_health_check_path
+  app_health_check_path      = var.app_health_check_path
+  enable_https               = var.enable_https
+  certificate_arn            = var.certificate_arn
+}
+
+module "auto_scaling" {
+  source = "./modules/auto_scaling"
+
+  environment     = var.environment
+  vpc_details     = module.vpc.vpc_details
+  deploy_web_tier = var.deploy_web_tier
+  deploy_app_tier = var.deploy_app_tier
+  aws_region      = var.aws_region
+  instance_types = {
+    web = var.instance_types.web
+    app = var.instance_types.app
+  }
+  enable_ssh = var.enable_ssh
+  key_name   = module.key.key_name # Now this will work
+
+  web_asg_config = var.web_asg_config
+  app_asg_config = var.app_asg_config
+
+  web_alb_arn          = module.load_balancer[0].web_alb_arn
+  web_target_group_arn = module.load_balancer[0].web_target_group_arn
+  app_alb_arn          = module.load_balancer[0].app_alb_arn
+  app_target_group_arn = module.load_balancer[0].app_target_group_arn
 }
