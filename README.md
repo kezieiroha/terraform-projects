@@ -9,11 +9,6 @@ This repository contains my personal Terraform projects and infrastructure autom
 - Portfolio demonstration
 - Personal reference
 
-**This code is not licensed for:**
-- Commercial use without express permission
-- Direct implementation in production environments
-- Distribution or incorporation into other repositories without attribution
-
 ## Professional Notice
 
 If you'd like to collaborate or discuss employment opportunities, please contact me via [LinkedIn](https://www.linkedin.com/in/kezie-i/)
