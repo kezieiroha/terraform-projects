@@ -9,6 +9,5 @@ This repository contains my personal Terraform projects and infrastructure autom
 - Portfolio demonstration
 - Personal reference
 
-## Professional Notice
 
 If you'd like to collaborate or discuss employment opportunities, please contact me via [LinkedIn](https://www.linkedin.com/in/kezie-i/)
