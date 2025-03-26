@@ -6,7 +6,7 @@
 
 aws_region       = "us-east-1"
 aws_account_id   = "123456789012"
-vpc_name         = "kezie-lab-vpc"
+vpc_name         = "my-lab-vpc"
 key_name         = "my-key-pair"
 private_key_path = "~/.ssh/my-key.pem"
 
@@ -17,12 +17,12 @@ public_subnets     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
 # Deployment Strategy Options
-deploy_ec2_tiers   = false  # Deploy standalone EC2 instances (without auto scaling)
+deploy_ec2_tiers   = false # Deploy standalone EC2 instances (without auto scaling)
 deploy_auto_scaling = true  # Deploy with load balancing and auto scaling
 
 # EC2 Tier Deployment Options (applies to both standalone EC2 and ASG)
-deploy_web_tier         = true  # Deploy Web Tier
-deploy_app_tier         = true  # Deploy App Tier
+deploy_web_tier = true # Deploy Web Tier
+deploy_app_tier = true # Deploy App Tier
 
 # Optional AZ override for standalone EC2 instances (when deploy_ec2_tiers = true)
 deploy_alternate_az_set = false # Deploy HA instances across AZs for standalone EC2
@@ -58,21 +58,26 @@ db_engine = "postgres"
 rds_deployment_type = "single_instance"
 
 # Database Configuration
-database_name                 = "mydb"
-db_master_username            = "postgres"
-db_master_password            = "yourSecurePassword123!" # Change in real deployment
-db_instance_class             = "db.t3.micro"            # aws rds describe-orderable-db-instance-options --engine aurora-postgresql --query "OrderableDBInstanceOptions[].DBInstanceClass" --output text
+database_name      = "mydb"
+db_master_username = "postgres"
+db_master_password = "yourSecurePassword123!" # Change in real deployment
+
+# rds db_instance_class: db.t3.micro, db.t3.small, db.t3.medium, db.t3.large, db.t3.xlarge, db.t3.2xlarge, db.t3.2xlarge, db.t3.4xlarge, db.t3.8xlarge, db.t3.16xlarge
+# aurora db_instance_class: db.t3.medium, db.t3.large, db.t3.xlarge, db.t3.2xlarge, db.t3.2xlarge, db.t3.4xlarge, db.t3.8xlarge, db.t3.16xlarge
+# aws rds describe-orderable-db-instance-options --engine aurora-postgresql --query "OrderableDBInstanceOptions[].DBInstanceClass" --output text
+db_instance_class = "db.t3.micro"
+
 db_cluster_identifier         = "rds-db"
-db_cluster_instance_class     = "db.c6gd.medium" # aws rds describe-orderable-db-instance-options --engine aurora-postgresql --query "OrderableDBInstanceOptions[].DBInstanceClass" --output text 
+db_cluster_instance_class     = "db.t3.micro" # aws rds describe-orderable-db-instance-options --engine aurora-postgresql --query "OrderableDBInstanceOptions[].DBInstanceClass" --output text 
 db_cluster_instance_count     = 1
 db_engine_version             = "16.3"       # aws rds describe-db-engine-versions --engine postgres --query "DBEngineVersions[].EngineVersion"
 db_parameter_group_family_rds = "postgres16" # postgres16, postgres15, postgres14, postgres13, postgres12
 
 # Database Storage Configuration
-db_allocated_storage          = 50     # minimum for aurora cluster is 100
-db_max_allocated_storage      = 100
-db_storage_type               = "gp3"  # gp2, gp3, or io1
-db_iops                       = 1000   # Only used with io1 storage type
+db_allocated_storage     = 50 # minimum for aurora cluster is 100
+db_max_allocated_storage = 100
+db_storage_type          = "gp3" # gp2, gp3, or io1
+db_iops                  = 1000  # Only used with io1 storage type
 
 # IAM Authentication
 db_iam_user = "iam_db_user"

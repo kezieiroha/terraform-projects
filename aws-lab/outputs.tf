@@ -66,12 +66,12 @@ output "app_instance_private_ips" {
 # Auto Scaling Group Outputs - Version that works with plain module (no count)
 output "auto_scaling_web_asg_name" {
   description = "Name of the web tier Auto Scaling Group"
-  value       = var.deploy_web_tier ? module.auto_scaling.web_asg_name : null
+  value       = var.deploy_auto_scaling && var.deploy_web_tier ? module.auto_scaling[0].web_asg_name : null
 }
 
 output "auto_scaling_app_asg_name" {
   description = "Name of the app tier Auto Scaling Group"
-  value       = var.deploy_app_tier ? module.auto_scaling.app_asg_name : null
+  value       = var.deploy_auto_scaling && var.deploy_app_tier ? module.auto_scaling[0].app_asg_name : null
 }
 
 # Key Outputs
@@ -85,12 +85,12 @@ output "key_pair_id" {
   value       = module.key.key_pair_id
 }
 
-# output "web_alb_dns_name" {
-#   description = "DNS name of the web tier ALB"
-#   value       = module.load_balancer[0].web_alb_dns_name
-# }
-# 
-# output "app_alb_dns_name" {
-#   description = "DNS name of the app tier ALB"
-#   value       = module.load_balancer[0].app_alb_dns_name
-# }
+output "web_alb_dns_name" {
+  description = "DNS name of the web tier ALB"
+  value       = var.deploy_auto_scaling ? module.load_balancer[0].web_alb_dns_name : null
+}
+
+output "app_alb_dns_name" {
+  description = "DNS name of the app tier ALB"
+  value       = var.deploy_auto_scaling ? module.load_balancer[0].app_alb_dns_name : null
+}

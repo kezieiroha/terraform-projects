@@ -97,6 +97,7 @@ module "load_balancer" {
 }
 
 module "auto_scaling" {
+  count  = var.deploy_auto_scaling ? 1 : 0
   source = "./modules/auto_scaling"
 
   environment     = var.environment
@@ -109,7 +110,7 @@ module "auto_scaling" {
     app = var.instance_types.app
   }
   enable_ssh = var.enable_ssh
-  key_name   = module.key.key_name # Now this will work
+  key_name   = module.key.key_name
 
   web_asg_config = var.web_asg_config
   app_asg_config = var.app_asg_config
