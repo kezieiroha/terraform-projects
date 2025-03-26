@@ -101,11 +101,11 @@ locals {
       value        = tostring(local.random_page_cost)
       apply_method = "immediate" # Dynamic parameter
     },
-    {
+    /*{
       name         = "checkpoint_timeout"
       value        = "300"
       apply_method = "immediate"
-    },
+    },*/
 
     # Autovacuum parameters
     {
