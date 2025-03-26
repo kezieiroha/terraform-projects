@@ -13,6 +13,7 @@ echo "===== Starting Bastion Host Setup: $(date) ====="
 # System updates and package installation
 echo "Installing required packages..."
 yum update -y
+yum install -y ec2-instance-connect
 yum install -y postgresql15 aws-cli jq git vim tmux htop
 
 # Store the instance ID and region

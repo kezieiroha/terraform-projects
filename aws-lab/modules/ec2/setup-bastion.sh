@@ -3,6 +3,7 @@
 # Install required packages
 echo "Installing PostgreSQL client and AWS CLI..."
 sudo yum update -y
+sudo yum install -y ec2-instance-connect
 sudo yum install -y postgresql15 aws-cli jq
 
 # Create a basic welcome message
