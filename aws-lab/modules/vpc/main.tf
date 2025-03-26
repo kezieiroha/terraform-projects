@@ -80,6 +80,13 @@ resource "aws_route_table" "public" {
   }
 }
 
+# Public Route Table Association
+resource "aws_route_table_association" "public" {
+  count          = length(var.public_subnets)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
 # NAT Gateway (Optional)
 resource "aws_eip" "nat" {
   domain = "vpc"
@@ -107,6 +114,13 @@ resource "aws_route_table" "private" {
   tags = {
     Name = "${var.vpc_name}-private-route"
   }
+}
+
+# Private Route Table Association
+resource "aws_route_table_association" "private" {
+  count          = length(var.private_subnets)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
 }
 
 # Security Groups (Dynamic Naming)
