@@ -100,7 +100,18 @@ jobs:
         category: checkov
       continue-on-error: true
 
-    - name: Upload Trivy SARIF
+    - name: Validate Trivy SARIF
+      if: success() || failure()
+      run: |
+        if [ -s trivy-results.sarif ] && jq empty trivy-results.sarif; then
+          echo "Valid SARIF file. Uploading..."
+        else
+          echo "Invalid or missing SARIF file. Skipping upload."
+          rm -f trivy-results.sarif
+        fi
+      continue-on-error: true
+
+    - name: Upload Trivy SARIF (safe)
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: aws-lab/trivy-results.sarif
