@@ -1,0 +1,59 @@
+# Kezie Iroha 05-2025
+# Basic DevSecOps CI/CD pipeline for Terraform projects
+# This GitHub Actions workflow is designed to perform static security analysis and checks on Terraform code.
+# It includes steps for initializing Terraform, formatting checks, validation, and running security tools like tfsec, Checkov, and Terrascan.
+# The workflow is triggered on push and pull request events to the main branch.
+
+name: Terraform DevSecOps CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  devsecops:
+    name: Static Security & Terraform Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.6
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Install tfsec
+      run: |
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+    - name: Run tfsec
+      run: tfsec .
+
+    - name: Install Checkov
+      run: pip install checkov
+
+    - name: Run Checkov
+      run: checkov -d .
+
+    - name: Install Terrascan
+      run: |
+        curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64 -o terrascan
+        chmod +x terrascan
+        sudo mv terrascan /usr/local/bin/terrascan
+
+    - name: Run Terrascan
+      run: terrascan scan -t aws -i terraform -d .
+
