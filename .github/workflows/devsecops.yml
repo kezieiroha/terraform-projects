@@ -23,10 +23,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.0
 
     - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@v3.1.0
       with:
         terraform_version: 1.6.6
 
@@ -39,25 +39,26 @@ jobs:
     - name: Terraform Validate
       run: terraform validate
 
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+
     - name: Install tfsec
       run: |
         curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
     - name: Run tfsec
-      run: tfsec .
+      run: tfsec . --format sarif --out tfsec.sarif
 
     - name: Install Checkov
       run: pip install checkov
 
     - name: Run Checkov
-      run: checkov -d .
-
-    - name: Install Terrascan
-      run: |
-        curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64 -o terrascan
-        chmod +x terrascan
-        sudo mv terrascan /usr/local/bin/terrascan
+      run: checkov -d . -o sarif > checkov.sarif
 
     - name: Run Terrascan
-      run: terrascan scan -t aws -i terraform -d .
-
+      uses: tenable/terrascan-action@main
+      with:
+        iac_type: 'terraform'
+        iac_version: 'v14'
+        policy_type: 'aws'
+        only_warn: true
