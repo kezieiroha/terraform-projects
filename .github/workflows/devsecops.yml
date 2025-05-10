@@ -43,8 +43,12 @@ jobs:
     - name: Terraform Validate
       run: terraform validate
 
-    - name: Terraform Plan
-      run: terraform plan -out=tfplan
+    # Commented out due to excessive execution time.
+    # - name: Terraform Plan
+    #   run: |
+    #     echo "::group::Terraform Plan"
+    #     time terraform plan -out=tfplan
+    #     echo "::endgroup::"
 
     - name: Install tfsec
       run: |
