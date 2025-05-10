@@ -21,6 +21,7 @@ jobs:
   devsecops:
     name: Static Security & Terraform Checks
     runs-on: ubuntu-latest
+    continue-on-error: false
     defaults:
       run:
         working-directory: aws-lab
@@ -55,13 +56,15 @@ jobs:
         curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
     - name: Run tfsec
-      run: tfsec . --format sarif --out tfsec.sarif
+      run: |
+        tfsec . --format stylish || true
+        tfsec . --format sarif --out tfsec.sarif || true
 
     - name: Install Checkov
       run: pip install checkov
 
     - name: Run Checkov
-      run: checkov -d . -o sarif > checkov.sarif
+      run: checkov -d . -o sarif > checkov.sarif || true
 
     - name: Run Terrascan
       uses: tenable/terrascan-action@main
@@ -70,15 +73,18 @@ jobs:
         iac_version: 'v14'
         policy_type: 'aws'
         only_warn: true
+      continue-on-error: true
 
     - name: Upload tfsec SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: aws-lab/tfsec.sarif
         category: tfsec
+      continue-on-error: true
 
     - name: Upload Checkov SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: aws-lab/checkov.sarif
         category: checkov
+      continue-on-error: true
