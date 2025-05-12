@@ -1,7 +1,7 @@
 # Kezie Iroha 05-2025
 # Basic DevSecOps CI/CD pipeline for Terraform projects
 # This GitHub Actions workflow is designed to perform static security analysis and checks on Terraform code.
-# It includes steps for initializing Terraform, formatting checks, validation, and running security tools like tfsec/Trivy, Checkov, and Terrascan.
+# It includes steps for initializing Terraform, formatting checks, validation, and running security tools like tfsec/Trivy, Checkov, Snyk and Terrascan.
 # The workflow is triggered on push and pull request events to the main branch.
 
 name: Terraform DevSecOps CI
@@ -117,3 +117,27 @@ jobs:
         sarif_file: aws-lab/trivy-results.sarif
         category: trivy
       continue-on-error: true
+
+  snyk:
+    name: Snyk IaC Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Ensure reports directory exists
+        run: mkdir -p reports
+
+      - name: Run Snyk to check Terraform and Ansible folders
+        continue-on-error: true
+        uses: snyk/actions/iac@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          file: |
+            aws-lab/
+          args: --severity-threshold=high
+          sarif: true
+
+      - name: Upload Snyk results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/snyk.sarif
