@@ -1,7 +1,7 @@
 # Kezie Iroha 05-2025
 # Basic DevSecOps CI/CD pipeline for Terraform projects
 # This GitHub Actions workflow is designed to perform static security analysis and checks on Terraform code.
-# It includes steps for initializing Terraform, formatting checks, validation, and running security tools like tfsec/Trivy, Checkov, Snyk and Terrascan.
+# It includes steps for initializing Terraform, formatting checks, validation, and running security tools like tfsec/Trivy, Checkov, Snyk, Terrascan and InfraCost
 # The workflow is triggered on push and pull request events to the main branch.
 
 name: Terraform DevSecOps CI
@@ -117,6 +117,48 @@ jobs:
         sarif_file: aws-lab/trivy-results.sarif
         category: trivy
       continue-on-error: true
+
+  # New job for Infracost analysis
+  infracost:
+    name: Infracost Analysis
+    runs-on: ubuntu-latest
+    # Only run on PR or manual trigger to avoid unnecessary cost analysis on every push
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: aws-lab
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.0
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3.1.0
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init -input=false
+      
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate Infracost cost estimate
+        run: |
+          infracost breakdown --path . \
+                              --format json \
+                              --out-file infracost.json
+
+      # This step will add a comment to the PR with cost estimates
+      - name: Post Infracost comment
+        if: github.event_name == 'pull_request'
+        run: |
+          infracost comment github --path=infracost.json \
+                                  --repo=$GITHUB_REPOSITORY \
+                                  --github-token=${{ secrets.GITHUB_TOKEN }} \
+                                  --pull-request=${{ github.event.pull_request.number }} \
+                                  --behavior=update
 
   snyk:
     name: Snyk IaC Scan
