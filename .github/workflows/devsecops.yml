@@ -3,7 +3,16 @@
 # This GitHub Actions workflow is designed to perform static security analysis and checks on Terraform code.
 # It includes steps for initializing Terraform, formatting checks, validation, and running security tools like tfsec/Trivy, Checkov, Snyk, Terrascan and InfraCost
 # The workflow is triggered on push and pull request events to the main branch.
+#
+# GitHub Marketplace Actions:
+# Terrascan: https://github.com/marketplace/actions/terrascan-iac-scanner
+# Trivy: https://github.com/marketplace/actions/aqua-security-trivy
+# Checkov: https://github.com/marketplace/actions/checkov-github-action
+# Gitleaks:  https://github.com/marketplace/actions/gitleaks
+# Snyk IaC: https://github.com/marketplace/actions/snyk
+# Infracost: https://github.com/marketplace/actions/infracost-actions
 
+# GitHub Actions:
 name: Terraform DevSecOps CI
 
 on:
@@ -16,6 +25,7 @@ on:
 permissions:
   contents: read
   security-events: write
+  pull-requests: write
 
 jobs:
   devsecops:
@@ -77,22 +87,6 @@ jobs:
         exit-code: '0'
       continue-on-error: true
 
-    # TFsec optional, but it will be deprecated in favor of Trivy
-    # - name: Install tfsec
-    #   run: |
-    #     curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
-
-    # - name: Run tfsec
-    #   run: |
-    #     tfsec . --format table || true
-    #     tfsec . --format sarif --out tfsec.sarif || true      
-    # - name: Upload tfsec SARIF
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   with:
-    #     sarif_file: aws-lab/tfsec.sarif
-    #     category: tfsec
-    #   continue-on-error: true
-
     - name: Upload Checkov SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
@@ -111,14 +105,24 @@ jobs:
         fi
       continue-on-error: true
 
-    - name: Upload Trivy SARIF (safe)
+    - name: Upload Trivy SARIF
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: aws-lab/trivy-results.sarif
         category: trivy
       continue-on-error: true
 
-  # New job for Infracost analysis
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        config: .gitleaks.toml
+        sarif: true
+        sarif_file: reports/gitleaks.sarif
+        sarif_upload: true
+
+  # Infracost analysis
+  # Only runs if tfvars override env files exist in environments/ directory
+  # Expects dev|test|staging|prod.tfvars for estimate to be generated
   infracost:
     name: Infracost Analysis
     runs-on: ubuntu-latest
@@ -131,34 +135,186 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.1.0
 
+      # Check if any environment tfvars files exist before proceeding
+      - name: Check for environment tfvars files
+        id: check-files
+        run: |
+          # Count how many environment files exist
+          ENV_COUNT=0
+          ENV_FILES=""
+          
+          # Check for all environment files in one loop
+          for env_type in dev test staging prod; do
+            if [ -f "environments/${env_type}.tfvars" ]; then
+              echo "Found environments/${env_type}.tfvars"
+              ((ENV_COUNT++))
+              ENV_FILES="$ENV_FILES ${env_type}"
+            fi
+          done
+          
+          # Special case: if both test.tfvars and staging.tfvars exist, we don't want to double count
+          if [ -f "environments/test.tfvars" ] && [ -f "environments/staging.tfvars" ]; then
+            echo "Found both test.tfvars and staging.tfvars, counting as one environment type"
+            ((ENV_COUNT--))
+          fi
+          
+          echo "env_count=$ENV_COUNT" >> $GITHUB_OUTPUT
+          echo "env_files=$ENV_FILES" >> $GITHUB_OUTPUT
+          
+          # If no environment files exist, we'll skip Infracost
+          if [ $ENV_COUNT -eq 0 ]; then
+            echo "No environment tfvars files found in environments/ directory."
+            echo "Skipping Infracost analysis as it would not provide meaningful results."
+            echo "skip_infracost=true" >> $GITHUB_OUTPUT
+          else
+            echo "Found $ENV_COUNT environment tfvars files: $ENV_FILES"
+            echo "Proceeding with Infracost analysis."
+            echo "skip_infracost=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Skip all further steps if no environment files exist
       - name: Set up Terraform
+        if: steps.check-files.outputs.skip_infracost != 'true'
         uses: hashicorp/setup-terraform@v3.1.0
         with:
           terraform_version: 1.6.6
 
       - name: Terraform Init
+        if: steps.check-files.outputs.skip_infracost != 'true'
         run: terraform init -input=false
       
       - name: Setup Infracost
+        if: steps.check-files.outputs.skip_infracost != 'true'
         uses: infracost/actions/setup@v3
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Generate Infracost cost estimate
+      # Run Infracost against each environment
+      - name: Generate environment-based cost estimates
+        if: steps.check-files.outputs.skip_infracost != 'true'
         run: |
-          infracost breakdown --path . \
-                              --format json \
-                              --out-file infracost.json
+          # Create directory for outputs
+          mkdir -p infracost-outputs
+          
+          # Process dev environment
+          if [ -f "environments/dev.tfvars" ]; then
+            echo "Running Infracost for DEV environment..."
+            infracost breakdown --path . \
+              --terraform-var-file="environments/dev.tfvars" \
+              --format json \
+              --out-file="infracost-outputs/dev.json" \
+              --log-level warn || true
+              
+            # Generate individual HTML report
+            infracost output --path "infracost-outputs/dev.json" \
+              --format html \
+              --out-file="dev-cost.html" || true
+          fi
+          
+          # Process test/staging environment  
+          if [ -f "environments/test.tfvars" ]; then
+            echo "Running Infracost for TEST environment..."
+            infracost breakdown --path . \
+              --terraform-var-file="environments/test.tfvars" \
+              --format json \
+              --out-file="infracost-outputs/test.json" \
+              --log-level warn || true
+              
+            # Generate individual HTML report
+            infracost output --path "infracost-outputs/test.json" \
+              --format html \
+              --out-file="test-cost.html" || true
+          elif [ -f "environments/staging.tfvars" ]; then
+            echo "Running Infracost for STAGING environment..."
+            infracost breakdown --path . \
+              --terraform-var-file="environments/staging.tfvars" \
+              --format json \
+              --out-file="infracost-outputs/staging.json" \
+              --log-level warn || true
+              
+            # Generate individual HTML report
+            infracost output --path "infracost-outputs/staging.json" \
+              --format html \
+              --out-file="staging-cost.html" || true
+          fi
+          
+          # Process production environment
+          if [ -f "environments/prod.tfvars" ]; then
+            echo "Running Infracost for PRODUCTION environment..."
+            infracost breakdown --path . \
+              --terraform-var-file="environments/prod.tfvars" \
+              --format json \
+              --out-file="infracost-outputs/prod.json" \
+              --log-level warn || true
+              
+            # Generate individual HTML report
+            infracost output --path "infracost-outputs/prod.json" \
+              --format html \
+              --out-file="prod-cost.html" || true
+          fi
+          
+          # Count how many environments were analyzed successfully
+          env_count=$(ls infracost-outputs/*.json 2>/dev/null | wc -l || echo "0")
+          
+          if [ "$env_count" -gt "1" ]; then
+            # Generate combined reports only if we have multiple environments
+            echo "Generating combined reports for $env_count environments..."
+            
+            # Generate a combined table
+            infracost output --path "infracost-outputs/*.json" \
+              --format table \
+              --out-file="combined-table.txt" || true
+              
+            # Generate a combined HTML report
+            infracost output --path "infracost-outputs/*.json" \
+              --format html \
+              --out-file="combined-costs.html" || true
+              
+            # Use the combined JSON for the PR comment
+            infracost output --path "infracost-outputs/*.json" \
+              --format json \
+              --out-file="infracost.json" || true
+          elif [ "$env_count" -eq "1" ]; then
+            # If only one environment, use that for the PR comment
+            cp infracost-outputs/*.json infracost.json
+          fi
+          
+          # If we have both dev and prod, generate a diff
+          if [ -f "infracost-outputs/dev.json" ] && [ -f "infracost-outputs/prod.json" ]; then
+            echo "Generating dev vs prod diff..."
+            infracost diff \
+              --path infracost-outputs/dev.json \
+              --compare-to infracost-outputs/prod.json \
+              --format html \
+              --out-file="env-diff.html" || true
+          fi
 
-      # This step will add a comment to the PR with cost estimates
+      # Post comment to PR with cost information
       - name: Post Infracost comment
-        if: github.event_name == 'pull_request'
+        if: steps.check-files.outputs.skip_infracost != 'true' && github.event_name == 'pull_request'
         run: |
           infracost comment github --path=infracost.json \
-                                  --repo=$GITHUB_REPOSITORY \
-                                  --github-token=${{ secrets.GITHUB_TOKEN }} \
-                                  --pull-request=${{ github.event.pull_request.number }} \
-                                  --behavior=update
+                                   --repo=$GITHUB_REPOSITORY \
+                                   --github-token=${{ github.token }} \
+                                   --pull-request=${{ github.event.pull_request.number }} \
+                                   --behavior=update \
+                                   --title="Infrastructure Cost Analysis: Using ${{ steps.check-files.outputs.env_count }} Environment Configurations"
+          
+      # Upload cost reports as artifacts
+      - name: Upload cost reports
+        if: steps.check-files.outputs.skip_infracost != 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: infracost-environment-reports
+          path: |
+            aws-lab/dev-cost.html
+            aws-lab/test-cost.html
+            aws-lab/staging-cost.html
+            aws-lab/prod-cost.html
+            aws-lab/combined-costs.html
+            aws-lab/env-diff.html
+            aws-lab/combined-table.txt
+          retention-days: 90
 
   snyk:
     name: Snyk IaC Scan
