@@ -1,0 +1,190 @@
+# Kezie Iroha 05-2025
+# Basic DevSecOps CI/CD pipeline for Terraform projects
+# This GitHub Actions workflow is designed to perform static security analysis and checks on Terraform code.
+# It includes steps for initializing Terraform, formatting checks, validation, and running security tools like tfsec/Trivy, Checkov, Snyk and Terrascan.
+# The workflow is triggered on push and pull request events to the main branch.
+
+name: Terraform DevSecOps CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  devsecops:
+    name: Static Security & Terraform Checks
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    defaults:
+      run:
+        working-directory: aws-lab
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      with:
+        persist-credentials: false
+
+    - name: Guard Against Committed Tfstate Files
+      working-directory: ${{ github.workspace }}
+      run: |
+        echo "=== Checking for committed tfstate files ==="
+        if git ls-files | grep -E '(^|/)[^/]+\.tfstate(\..*)?$' >/dev/null; then
+          echo "ERROR: tfstate files are committed to the repo."
+          echo "Remove them and rely on remote state."
+          git ls-files | grep -E '(^|/)[^/]+\.tfstate(\..*)?$' || true
+          exit 1
+        fi
+        echo "No committed tfstate files found."
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      with:
+        terraform_version: 1.6.6
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    # Commented out due to excessive execution time.
+    # - name: Terraform Plan
+    #   run: |
+    #     echo "::group::Terraform Plan"
+    #     time terraform plan -out=tfplan
+    #     echo "::endgroup::"
+
+    - name: Install Checkov
+      run: pip install checkov
+
+    - name: Run Checkov
+      run: checkov -d . -o cli -o sarif --output-file-path console,checkov.sarif || true
+
+    - name: Run Terrascan
+      uses: tenable/terrascan-action@3a6e87da8e244513bd77b631e624552643f794c6 # v1.4.1
+      with:
+        iac_type: 'terraform'
+        iac_version: 'v14'
+        policy_type: 'aws'
+        only_warn: true
+      continue-on-error: true
+
+    - name: Run Trivy IaC Scan
+      uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+      with:
+        scan-type: 'config'
+        scan-ref: 'aws-lab'
+        format: 'sarif'
+        output: 'aws-lab/trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        exit-code: '0'
+      continue-on-error: true
+
+    # TFsec optional, but it will be deprecated in favor of Trivy
+    # - name: Install tfsec
+    #   run: |
+    #     curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+    # - name: Run tfsec
+    #   run: |
+    #     tfsec . --format table || true
+    #     tfsec . --format sarif --out tfsec.sarif || true      
+    # - name: Upload tfsec SARIF
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   with:
+    #     sarif_file: aws-lab/tfsec.sarif
+    #     category: tfsec
+    #   continue-on-error: true
+
+    - name: Validate Checkov SARIF
+      if: success() || failure()
+      run: |
+        if [ -s checkov.sarif ] && jq empty checkov.sarif; then
+          echo "Valid Checkov SARIF file. Uploading..."
+        else
+          echo "Invalid or missing Checkov SARIF file. Skipping upload."
+          rm -f checkov.sarif
+        fi
+      continue-on-error: true
+
+    - name: Upload Checkov SARIF
+      if: hashFiles('aws-lab/checkov.sarif') != ''
+      uses: github/codeql-action/upload-sarif@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
+      with:
+        sarif_file: aws-lab/checkov.sarif
+        category: checkov
+      continue-on-error: true
+
+    - name: Validate Trivy SARIF
+      if: success() || failure()
+      run: |
+        if [ -s trivy-results.sarif ] && jq empty trivy-results.sarif; then
+          echo "Valid SARIF file. Uploading..."
+        else
+          echo "Invalid or missing SARIF file. Skipping upload."
+          rm -f trivy-results.sarif
+        fi
+      continue-on-error: true
+
+    - name: Upload Trivy SARIF (safe)
+      if: hashFiles('aws-lab/trivy-results.sarif') != ''
+      uses: github/codeql-action/upload-sarif@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
+      with:
+        sarif_file: aws-lab/trivy-results.sarif
+        category: trivy
+      continue-on-error: true
+
+  snyk:
+    name: Snyk IaC Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Ensure reports directory exists
+        run: mkdir -p reports
+
+      - name: Run Snyk IaC Scan
+        continue-on-error: true
+        uses: snyk/actions/iac@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          file: |
+            aws-lab/
+          args: --severity-threshold=high --sarif-file-output=reports/snyk.sarif
+
+      - name: Validate Snyk SARIF
+        if: success() || failure()
+        run: |
+          if [ -s reports/snyk.sarif ] && jq empty reports/snyk.sarif; then
+            echo "Valid Snyk SARIF file. Uploading..."
+          else
+            echo "Invalid or missing Snyk SARIF file. Skipping upload."
+            rm -f reports/snyk.sarif
+          fi
+        continue-on-error: true
+
+      - name: Upload Snyk results
+        if: hashFiles('reports/snyk.sarif') != ''
+        uses: github/codeql-action/upload-sarif@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
+        with:
+          sarif_file: reports/snyk.sarif
