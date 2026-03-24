@@ -47,6 +47,18 @@ jobs:
         fi
         echo "No committed tfstate files found."
 
+    - name: Guard Against Committed Tfvars Files
+      working-directory: ${{ github.workspace }}
+      run: |
+        echo "=== Checking for committed tfvars files ==="
+        if git ls-files | grep -E '(^|/)[^/]+\.tfvars(\.json)?$' | grep -Ev '(^|/)[^/]+\.example\.tfvars(\.json)?$|(^|/)[^/]+\.tfvars\.example(\.json)?$' >/dev/null; then
+          echo "ERROR: tfvars files are committed to the repo."
+          echo "Remove them and use example files or secure secret handling instead."
+          git ls-files | grep -E '(^|/)[^/]+\.tfvars(\.json)?$' | grep -Ev '(^|/)[^/]+\.example\.tfvars(\.json)?$|(^|/)[^/]+\.tfvars\.example(\.json)?$' || true
+          exit 1
+        fi
+        echo "No committed tfvars files found."
+
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
       with:
